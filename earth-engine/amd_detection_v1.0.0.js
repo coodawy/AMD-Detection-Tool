@@ -5,7 +5,7 @@
 // STUDY AREAS
 // ==================================================================
 
- var TOOL_VERSION = 'v1.4.0';
+ var TOOL_VERSION = 'v1.5.0';
 
 
 var studyAreas = {
@@ -2133,6 +2133,88 @@ var waterSlider = ui.Slider({
 });
 
 // ═══════════════════════════════════════════════════════════════════════
+// ADVANCED THRESHOLDING OPTIONS
+// ═══════════════════════════════════════════════════════════════════════
+
+var advancedHeader = ui.Label({
+  value: '⚙️ ADVANCED THRESHOLDING',
+  style: {
+    fontWeight: 'bold',
+    fontSize: '10px',
+    margin: '12px 0 4px 0',
+    color: '#8B4513'
+  }
+});
+
+var advancedHelp = ui.Label({
+  value: 'Paper methods: Adaptive for mountains, Fixed for homogeneous terrain',
+  style: {fontSize: '8px', margin: '0 0 4px 0', color: '#666', fontStyle: 'italic'}
+});
+
+// Adaptive Thresholds Toggle (from paper Section 3.3)
+var adaptiveCheckbox = ui.Checkbox({
+  label: 'Use Adaptive Thresholds (mean + N×σ)',
+  value: false,
+  style: {fontSize: '9px', margin: '0 0 4px 0'},
+  onChange: function(checked) {
+    settings.useStdDevThresholds = checked;
+    adaptiveMultPanel.style().set('shown', checked);
+    print(checked ? '📊 Adaptive thresholds ENABLED (recommended for heterogeneous terrain)' : 
+                    '📊 Fixed thresholds ENABLED (paper defaults)');
+    updateDetection();
+  }
+});
+
+// Multiplier sliders (only shown when adaptive is enabled)
+var adaptiveMultPanel = ui.Panel({style: {shown: false, margin: '0 0 4px 0'}});
+
+var ironMultLabel = ui.Label('Iron σ Mult: 2.0', {margin: '2px 0 2px 0', fontSize: '9px'});
+var ironMultSlider = ui.Slider({
+  min: 1.0, max: 3.0, value: 2.0, step: 0.1,
+  style: {stretch: 'horizontal'},
+  onChange: function(value) {
+    settings.ironStdMult = value;
+    ironMultLabel.setValue('Iron σ Mult: ' + value.toFixed(1));
+    if (settings.useStdDevThresholds) updateDetection();
+  }
+});
+
+var ferricMultLabel = ui.Label('Ferric σ Mult: 1.5', {margin: '2px 0 2px 0', fontSize: '9px'});
+var ferricMultSlider = ui.Slider({
+  min: 1.0, max: 3.0, value: 1.5, step: 0.1,
+  style: {stretch: 'horizontal'},
+  onChange: function(value) {
+    settings.ferric1StdMult = value;
+    settings.ferric2StdMult = value;
+    ferricMultLabel.setValue('Ferric σ Mult: ' + value.toFixed(1));
+    if (settings.useStdDevThresholds) updateDetection();
+  }
+});
+
+adaptiveMultPanel.add(ironMultLabel);
+adaptiveMultPanel.add(ironMultSlider);
+adaptiveMultPanel.add(ferricMultLabel);
+adaptiveMultPanel.add(ferricMultSlider);
+
+// Index Clipping Toggle (from paper Section 3.4)
+var clippingCheckbox = ui.Checkbox({
+  label: 'Enable Index Clipping (95th percentile)',
+  value: false,
+  style: {fontSize: '9px', margin: '4px 0 4px 0'},
+  onChange: function(checked) {
+    settings.useIndexClipping = checked;
+    print(checked ? '✂️ Index clipping ENABLED (caps extreme outliers)' : 
+                    '✂️ Index clipping DISABLED');
+    updateDetection();
+  }
+});
+
+var clippingHelp = ui.Label({
+  value: 'Recommended for Sentinel-2 (noisier than Landsat)',
+  style: {fontSize: '8px', margin: '0 0 8px 0', color: '#666', fontStyle: 'italic'}
+});
+
+// ═══════════════════════════════════════════════════════════════════════
 // WATER QUALITY MODULE
 // ═══════════════════════════════════════════════════════════════════════
 
@@ -2382,6 +2464,12 @@ scrollPanel.add(cloudPresetPanel);
 scrollPanel.add(waterCheckbox);
 scrollPanel.add(waterLabel);
 scrollPanel.add(waterSlider);
+scrollPanel.add(advancedHeader);
+scrollPanel.add(advancedHelp);
+scrollPanel.add(adaptiveCheckbox);
+scrollPanel.add(adaptiveMultPanel);
+scrollPanel.add(clippingCheckbox);
+scrollPanel.add(clippingHelp);
 scrollPanel.add(waterQualityHeader);
 scrollPanel.add(waterQualityHelp);
 scrollPanel.add(waterQualityCheckbox);
@@ -2622,13 +2710,13 @@ print('════════════════════════�
 print('USGS AMD/Iron Sulfate Detection Tool ' + TOOL_VERSION);
 print('═══════════════════════════════════════════════════════════════');
 print('NEW in ' + TOOL_VERSION + ':');
-print('  ✅ Added notDark mask to classification (prevents division artifacts)');
-print('  ✅ Fixed contaminated water brightness range (0.05-0.20)');
-print('  ✅ Added Apply Date Range button (replaces auto-update)');
-print('  ✅ Strong iron signal (>2.5) bypasses road detection');
-print('  ✅ Sensor-specific built-up detection (S2: 0.15, L8: 0.18)');
-print('  ✅ Water-edge building detection (marinas, docks)');
-print('  ✅ Multi-method cloud masking with Cloud Score+');
+print('  ✅ UI toggle for Adaptive Thresholds (mean + N×σ)');
+print('  ✅ UI toggle for Index Clipping (95th percentile)');
+print('  ✅ Adjustable σ multipliers for Iron and Ferric indices');
+print('  ✅ notDark mask prevents division artifacts');
+print('  ✅ Contaminated water brightness range fixed (0.05-0.20)');
+print('  ✅ Apply Date Range button (no aggressive auto-update)');
+print('  ✅ Strong iron (>2.5) bypasses road detection');
 print('═══════════════════════════════════════════════════════════════');
 print('Initializing...');
 
