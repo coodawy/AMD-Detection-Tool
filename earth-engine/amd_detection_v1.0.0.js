@@ -5,7 +5,7 @@
 // STUDY AREAS
 // ==================================================================
 
- var TOOL_VERSION = 'v1.3.0';
+ var TOOL_VERSION = 'v1.4.0';
 
 
 var studyAreas = {
@@ -638,10 +638,14 @@ function createContaminatedWaterMask() {
   // Real contaminated water: high iron + moderate brightness (not too dark, not too bright)
   // False positive in deep water: high iron + very low brightness
   // False positive on land: high iron + very high brightness
+  // FIXED: Contaminated water brightness range (from paper analysis)
+  // - Minimum 0.05: Not too dark (avoids false positives from deep/dark water)
+  // - Maximum 0.20: Not too bright (would be land-like, not water)
+  // Previous: 0.02-0.35 was too permissive, allowing bright land pixels
   var isContaminatedWater = iron.gt(settings.contaminatedWaterThreshold)
     .and(isWater)
-    .and(brightness.gt(settings.brightnessMin))   // Must have minimum brightness (not deep/dark water)
-    .and(brightness.lt(settings.brightnessMax));  // But not too bright (would be land-like)
+    .and(brightness.gt(0.05))   // Minimum for real water signal
+    .and(brightness.lt(0.20));  // Maximum for water (not land)
   
   // Clean water
   var isCleanWater = isWater.and(isContaminatedWater.not());
@@ -780,9 +784,11 @@ function createBooleanClassification() {
       .or(hasHighIron.and(lowSWIR1).and(notDenseVeg))
     );
   
-  // Land mask: exclude water + extreme brightness + built-up areas + vegetation + roads
+  // Land mask: exclude water + extreme brightness + dark pixels + built-up areas + vegetation + roads
+  // ADDED: notDark mask from paper (prevents division artifacts in dark pixels)
   var amdLandMask = unifiedWater.not()
     .and(notBright)
+    .and(notDark)
     .and(builtUpMask.not())
     .and(passesVegRoadMask);
   
@@ -1893,6 +1899,8 @@ var dateRangeLabel = ui.Label('Date Filter:', {
   fontWeight: 'bold', fontSize: '10px', margin: '6px 0 2px 0'
 });
 
+// FIXED: Removed auto-update from date inputs (was too aggressive while typing)
+// Now uses "Apply Date Range" button instead
 var startDateBox = ui.Textbox({
   placeholder: 'Start: YYYY-MM-DD',
   value: '',
@@ -1901,12 +1909,7 @@ var startDateBox = ui.Textbox({
     if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
       settings.specificStartDate = value;
       settings.useSpecificDate = true;
-      print('📅 Start date set: ' + value);
-      // Check if end date is also set, then update
-      if (endDateBox.getValue() && /^\d{4}-\d{2}-\d{2}$/.test(endDateBox.getValue())) {
-        print('🔄 Updating visualization with new date range...');
-        updateEverything();
-      }
+      print('📅 Start date set: ' + value + ' (click Apply to update)');
     } else if (!value) {
       settings.useSpecificDate = false;
     }
@@ -1921,14 +1924,29 @@ var endDateBox = ui.Textbox({
     if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
       settings.specificEndDate = value;
       settings.useSpecificDate = true;
-      print('📅 End date set: ' + value);
-      // Check if start date is also set, then update
-      if (startDateBox.getValue() && /^\d{4}-\d{2}-\d{2}$/.test(startDateBox.getValue())) {
-        print('🔄 Updating visualization with new date range...');
-        updateEverything();
-      }
+      print('📅 End date set: ' + value + ' (click Apply to update)');
     } else if (!value) {
       settings.useSpecificDate = false;
+    }
+  }
+});
+
+// NEW: Apply Date Range button (replaces aggressive auto-update)
+var applyDatesButton = ui.Button({
+  label: 'Apply Date Range',
+  style: {stretch: 'horizontal', fontSize: '9px', margin: '2px 0 0 0'},
+  onClick: function() {
+    var startVal = startDateBox.getValue();
+    var endVal = endDateBox.getValue();
+    var validStart = startVal && /^\d{4}-\d{2}-\d{2}$/.test(startVal);
+    var validEnd = endVal && /^\d{4}-\d{2}-\d{2}$/.test(endVal);
+    
+    if (validStart && validEnd) {
+      settings.useSpecificDate = true;
+      print('🔄 Applying date range: ' + startVal + ' to ' + endVal);
+      updateEverything();
+    } else {
+      print('⚠️ Please enter valid dates in YYYY-MM-DD format');
     }
   }
 });
@@ -2341,6 +2359,7 @@ scrollPanel.add(seasonHelp);
 scrollPanel.add(dateRangeLabel);
 scrollPanel.add(startDateBox);
 scrollPanel.add(endDateBox);
+scrollPanel.add(applyDatesButton);
 scrollPanel.add(clearDatesButton);
 scrollPanel.add(regionLabel);
 scrollPanel.add(regionSelect);
@@ -2603,13 +2622,13 @@ print('════════════════════════�
 print('USGS AMD/Iron Sulfate Detection Tool ' + TOOL_VERSION);
 print('═══════════════════════════════════════════════════════════════');
 print('NEW in ' + TOOL_VERSION + ':');
-print('  ✅ Removed thermal band processing');
-print('  ✅ Removed Sentinel-2 resampling to 30m');
-print('  ✅ Added multiple cloud masking methods');
-print('  ✅ Added Cloud Score+ integration');
-print('  ✅ Multiple cloud masking methods dropdown');
-print('  ✅ Date selection triggers immediate update');
-print('  ✅ Adjustable cloud masking thresholds with presets');
+print('  ✅ Added notDark mask to classification (prevents division artifacts)');
+print('  ✅ Fixed contaminated water brightness range (0.05-0.20)');
+print('  ✅ Added Apply Date Range button (replaces auto-update)');
+print('  ✅ Strong iron signal (>2.5) bypasses road detection');
+print('  ✅ Sensor-specific built-up detection (S2: 0.15, L8: 0.18)');
+print('  ✅ Water-edge building detection (marinas, docks)');
+print('  ✅ Multi-method cloud masking with Cloud Score+');
 print('═══════════════════════════════════════════════════════════════');
 print('Initializing...');
 
