@@ -5,7 +5,7 @@
 // STUDY AREAS
 // ==================================================================
 
- var TOOL_VERSION = 'v1.5.0';
+ var TOOL_VERSION = 'v1.5.1';
 
 
 var studyAreas = {
@@ -612,12 +612,20 @@ function createUnifiedWaterMask() {
   
   var mndwi = settings.currentComposite.select('MNDWI');
   var aweinsh = settings.currentComposite.select('AWEINSH');
+  var brightness = settings.currentComposite.select('Brightness');
+  var ndvi = settings.currentComposite.select('NDVI');
+  var ndwi = settings.currentComposite.select('NDWI');
   
-  // IMPROVED WATER DETECTION (from edited version)
-  // Simpler and more effective: MNDWI + AWEINSH
-  // AWEINSH = B2 + 2.5×B3 - 1.5×B5 - 0.25×B7
+  // Multi-criteria water detection - prevents land from entering water classification
+  // Each criterion removes a different type of false positive:
+  // - brightness.lt(0.30): Excludes bright land surfaces
+  // - ndvi.lt(0.2): Excludes vegetation
+  // - ndwi.gt(-0.1): Additional water confirmation
   var isWater = mndwi.gt(settings.waterThreshold)     // mNDWI > 0.3 (main criterion)
-    .and(aweinsh.gt(settings.aweinshThreshold));      // AWEINSH > 0.0 (confirms water)
+    .and(aweinsh.gt(settings.aweinshThreshold))       // AWEINSH > 0.0 (confirms water)
+    .and(brightness.lt(0.30))                         // Excludes bright land surfaces
+    .and(ndvi.lt(0.2))                                // Excludes vegetation
+    .and(ndwi.gt(-0.1));                              // Additional water confirmation
   
   return isWater;
 }
@@ -922,11 +930,17 @@ function createWaterQualityClassification() {
   if (!settings.currentComposite) return null;
   
   // ───────────────────────────────────────────────────────────────────────
-  // STEP 1: Water Body Extraction (USE UNIFIED MASK)
+  // STEP 1: Water Body Extraction (USE UNIFIED MASK + EXCLUDE LAND AMD)
   // ───────────────────────────────────────────────────────────────────────
   
   // Use the SAME water mask as Land AMD module to prevent pixel conflicts
   var waterMask = createUnifiedWaterMask();
+  
+  // Explicitly exclude any land AMD pixels from water analysis
+  // This prevents overlap between Land AMD and Water Quality classifications
+  var landClassification = createBooleanClassification();
+  var isLandAMD = landClassification.gte(1).and(landClassification.lte(19));
+  var waterOnlyMask = waterMask.and(isLandAMD.not());
   
   // ───────────────────────────────────────────────────────────────────────
   // STEP 2: Depth Filtering (Remove Shallow Water)
@@ -937,7 +951,7 @@ function createWaterQualityClassification() {
   
   // Keep only deep water (depth proxy < threshold means deeper)
   // This removes bottom-reflectance contamination
-  var deepWaterMask = waterMask.and(depthProxy.lt(settings.shallowWaterThreshold));
+  var deepWaterMask = waterOnlyMask.and(depthProxy.lt(settings.shallowWaterThreshold));
   
   // ───────────────────────────────────────────────────────────────────────
   // STEP 3: Calculate Contamination Indices
@@ -2710,13 +2724,10 @@ print('════════════════════════�
 print('USGS AMD/Iron Sulfate Detection Tool ' + TOOL_VERSION);
 print('═══════════════════════════════════════════════════════════════');
 print('NEW in ' + TOOL_VERSION + ':');
-print('  ✅ UI toggle for Adaptive Thresholds (mean + N×σ)');
-print('  ✅ UI toggle for Index Clipping (95th percentile)');
-print('  ✅ Adjustable σ multipliers for Iron and Ferric indices');
-print('  ✅ notDark mask prevents division artifacts');
-print('  ✅ Contaminated water brightness range fixed (0.05-0.20)');
-print('  ✅ Apply Date Range button (no aggressive auto-update)');
-print('  ✅ Strong iron (>2.5) bypasses road detection');
+print('  ✅ Fixed land false positives in Water Quality layer');
+print('  ✅ Multi-criteria water mask (MNDWI + AWEINSH + Brightness + NDVI + NDWI)');
+print('  ✅ Land AMD exclusion prevents module overlap');
+print('  ✅ Depth filter preserved for clean lake accuracy');
 print('═══════════════════════════════════════════════════════════════');
 print('Initializing...');
 
