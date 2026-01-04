@@ -39,14 +39,14 @@ __author__ = "AMD Detection Tool Team"
 # GOOGLE EARTH ENGINE INITIALIZATION
 # =============================================================================
 
-def initialize_gee(project: str = None, auth_mode: str = "notebook") -> bool:
+def initialize_gee(project: str = "remote-sensing-class-fall-2025", auth_mode: str = "notebook") -> bool:
     """
     Initialize Google Earth Engine with authentication.
     
     Parameters
     ----------
-    project : str, optional
-        GEE cloud project ID. If None, uses default.
+    project : str, default "remote-sensing-class-fall-2025"
+        GEE cloud project ID. Uses department default if not specified.
     auth_mode : str, default "notebook"
         Authentication mode: "notebook" for Colab/Jupyter, "service_account" for automation.
     
@@ -58,16 +58,19 @@ def initialize_gee(project: str = None, auth_mode: str = "notebook") -> bool:
     Examples
     --------
     >>> import amd_detection as amd
-    >>> amd.initialize_gee()
+    >>> amd.initialize_gee()  # Uses default project
+    True
+    >>> amd.initialize_gee(project="your-custom-project")  # Custom project
     True
     """
     try:
         ee.Authenticate(auth_mode=auth_mode)
         if project:
             ee.Initialize(project=project)
+            print(f"✅ Google Earth Engine initialized with project: {project}")
         else:
             ee.Initialize()
-        print("✅ Google Earth Engine initialized successfully!")
+            print("✅ Google Earth Engine initialized successfully!")
         return True
     except Exception as e:
         print(f"❌ GEE initialization failed: {e}")
