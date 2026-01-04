@@ -10,8 +10,17 @@ Detect **Acid Mine Drainage (AMD)** and **iron sulfate minerals** using satellit
 ## 🚀 Quick Start (Google Colab)
 
 1. **Open in Colab:** Upload `AMD_Detection_Tool.ipynb` to Google Colab
-2. **Upload module:** Upload `amd_detection.py` to the same session
+2. **Run the first cells:** The notebook will automatically download `amd_detection.py` from GitHub if it is not already present
 3. **Run cells:** Follow the step-by-step instructions in the notebook
+
+Alternative (clone the repo in Colab):
+
+```python
+!git clone https://github.com/coodawy/AMD-Detection-Tool.git
+import sys
+sys.path.insert(0, '/content/AMD-Detection-Tool/python')
+import amd_detection as amd
+```
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/)
 

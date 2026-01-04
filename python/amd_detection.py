@@ -25,12 +25,8 @@ Usage:
 # =============================================================================
 
 import ee
-import folium
 import geemap
-import pandas as pd
-import numpy as np
-from datetime import datetime
-from typing import Dict, List, Tuple, Optional, Union
+from typing import List
 
 # =============================================================================
 # VERSION INFO
@@ -677,7 +673,6 @@ def create_land_classification(composite: ee.Image,
     clay = composite.select('ClaySulfateMica')
     green_veg = composite.select('GreenVeg')
     brightness = composite.select('Brightness')
-    ndvi = composite.select('NDVI')
     b6 = composite.select('SR_B6')
     
     # Create binary threshold masks
