@@ -155,6 +155,7 @@ def calculate_spectral_indices(image: ee.Image, sensor: str = "Landsat 8") -> ee
     Calculate all spectral indices for AMD detection.
     
     Based on Rockwell et al. (2021) USGS methodology.
+    EXACTLY matches the JavaScript GEE version formulas.
     
     Parameters
     ----------
@@ -170,107 +171,150 @@ def calculate_spectral_indices(image: ee.Image, sensor: str = "Landsat 8") -> ee
     
     Notes
     -----
-    Band mapping:
-    - Landsat 8: B1=Coastal, B2=Blue, B3=Green, B4=Red, B5=NIR, B6=SWIR1, B7=SWIR2
-    - Sentinel-2: B1=Coastal, B2=Blue, B3=Green, B4=Red, B8=NIR, B11=SWIR1, B12=SWIR2
+    Band mapping (both sensors normalized to Landsat naming):
+    - SR_B1: Coastal/Aerosol (0.43-0.45 μm)
+    - SR_B2: Blue (0.45-0.51 μm)
+    - SR_B3: Green (0.53-0.59 μm)
+    - SR_B4: Red (0.64-0.67 μm)
+    - SR_B5: NIR (0.85-0.88 μm)
+    - SR_B6: SWIR1 (1.57-1.65 μm)
+    - SR_B7: SWIR2 (2.11-2.29 μm)
     """
-    # Select bands based on sensor
-    if sensor == "Sentinel-2":
-        b1 = image.select('SR_B1')  # Coastal
-        b2 = image.select('SR_B2')  # Blue
-        b3 = image.select('SR_B3')  # Green
-        b4 = image.select('SR_B4')  # Red
-        b5 = image.select('SR_B5')  # NIR
-        b6 = image.select('SR_B6')  # SWIR1
-        b7 = image.select('SR_B7')  # SWIR2
-    else:  # Landsat 8
-        b1 = image.select('SR_B1')
-        b2 = image.select('SR_B2')
-        b3 = image.select('SR_B3')
-        b4 = image.select('SR_B4')
-        b5 = image.select('SR_B5')
-        b6 = image.select('SR_B6')
-        b7 = image.select('SR_B7')
+    # Select bands (both sensors use same naming after preprocessing)
+    b1 = image.select('SR_B1')  # Coastal/Aerosol
+    b2 = image.select('SR_B2')  # Blue
+    b3 = image.select('SR_B3')  # Green
+    b4 = image.select('SR_B4')  # Red
+    b5 = image.select('SR_B5')  # NIR
+    b6 = image.select('SR_B6')  # SWIR1
+    b7 = image.select('SR_B7')  # SWIR2
+    
+    # Add epsilon to avoid division by zero
+    epsilon = 0.0001
+    b1_safe = b1.add(epsilon)
+    b2_safe = b2.add(epsilon)
+    b4_safe = b4.add(epsilon)
+    b5_safe = b5.add(epsilon)
+    b7_safe = b7.add(epsilon)
     
     # =========================================================================
     # PRIMARY AMD INDICES (Rockwell et al. 2021, Table 3)
+    # CRITICAL: These formulas MUST match the JavaScript version exactly!
     # =========================================================================
     
-    # Iron Sulfate Index: B4/B2 (Red/Blue ratio)
-    # High values indicate jarosite, goethite, and other iron sulfate minerals
-    iron_sulfate = b4.divide(b2).rename('IronSulfate')
+    # 1. IRON SULFATE MINERAL INDEX (Rockwell et al. 2021)
+    # Formula: (B2 + B4) / B1
+    # New L8 band addition index for robust jarosite detection
+    # Clamp to reasonable range to avoid outliers from bad pixels
+    iron_sulfate = (b2.add(b4).divide(b1_safe)
+                    .clamp(0, 10)
+                    .rename('IronSulfate'))
     
-    # Ferric Iron Index 1: B4/B3 (Red/Green ratio)
-    # Detects ferric iron minerals like hematite
-    ferric_iron1 = b4.divide(b3).rename('FerricIron1')
+    # 2. FERRIC IRON 1 "REDNESS INDEX"
+    # Formula: B4/B2
+    # Detects hematite and goethite
+    ferric_iron1 = b4.divide(b2_safe).rename('FerricIron1')
     
-    # Ferric Iron Index 2: (B4+B1) / B3
-    # More sensitive to oxidized iron
-    ferric_iron2 = b4.add(b1).divide(b3).rename('FerricIron2')
+    # 3. FERRIC IRON 2 (Crystal Field Electronic Transition)
+    # Formula: (B4/B2) × (B4+B6)/(B5)
+    # Enhanced ferric iron detection
+    ferric_iron2 = (b4.divide(b2_safe)
+                    .multiply(b4.add(b6).divide(b5_safe))
+                    .rename('FerricIron2'))
     
-    # Ferrous Iron Index: B6/B5 (SWIR1/NIR ratio)
-    # Detects reduced iron (ferrous) minerals
-    ferrous_iron = b6.divide(b5).rename('FerrousIron')
+    # 4. FERROUS IRON
+    # Formula: (B3+B6)/(B4+B5)
+    # Detects chlorite and other ferrous minerals
+    ferrous_iron = (b3.add(b6).divide(b4.add(b5).add(epsilon))
+                    .rename('FerrousIron'))
     
-    # Clay-Sulfate-Mica Index: (B6-B7) / (B6+B7)
-    # Normalized difference for clay and sulfate minerals
-    clay_sulfate = b6.subtract(b7).divide(b6.add(b7)).rename('ClaySulfateMica')
+    # 5. CLAY-SULFATE-MICA INDEX
+    # Formula: (B6/B7) - (B5/B4)
+    # Detects clay, sulfate, and mica minerals
+    clay_sulfate = (b6.divide(b7_safe).subtract(b5.divide(b4_safe))
+                    .rename('ClaySulfateMica'))
     
-    # Green Vegetation Index: (B3-B4) / (B3+B4) + 0.5 × B5
-    # Helps separate vegetation from iron minerals
-    green_veg = b3.subtract(b4).divide(b3.add(b4)).add(b5.multiply(0.5)).rename('GreenVeg')
+    # 6. GREEN VEGETATION INDEX
+    # Formula: B5/B4 (NDVI-like)
+    # Detects vegetation
+    green_veg = b5.divide(b4_safe).rename('GreenVeg')
     
     # =========================================================================
     # STANDARD VEGETATION & WATER INDICES
     # =========================================================================
     
     # NDVI: Normalized Difference Vegetation Index
-    ndvi = b5.subtract(b4).divide(b5.add(b4)).rename('NDVI')
+    ndvi = image.normalizedDifference(['SR_B5', 'SR_B4']).rename('NDVI')
     
     # NDWI: Normalized Difference Water Index (McFeeters)
-    ndwi = b3.subtract(b5).divide(b3.add(b5)).rename('NDWI')
+    ndwi = image.normalizedDifference(['SR_B3', 'SR_B5']).rename('NDWI')
     
     # MNDWI: Modified NDWI (Xu 2006)
-    mndwi = b3.subtract(b6).divide(b3.add(b6)).rename('MNDWI')
+    mndwi = image.normalizedDifference(['SR_B3', 'SR_B6']).rename('MNDWI')
+    
+    # Overall brightness (average of visible bands)
+    brightness = b2.add(b3).add(b4).divide(3).rename('Brightness')
     
     # =========================================================================
     # WATER QUALITY INDICES
     # =========================================================================
     
-    # AWEINSH: Automated Water Extraction Index (no shadow)
-    aweinsh = b2.add(b3.multiply(2.5)).subtract(b5.multiply(1.5)).subtract(b7.multiply(0.25)).rename('AWEINSH')
+    # AWEINSH: Automated Water Extraction Index (Feyisa et al. 2014)
+    # Formula: B2 + 2.5×B3 - 1.5×B5 - 0.25×B7
+    aweinsh = (b2.add(b3.multiply(2.5))
+               .subtract(b5.multiply(1.5))
+               .subtract(b7.multiply(0.25))
+               .rename('AWEINSH'))
     
-    # Turbidity Ratio: B4/B3 (indicator of suspended sediments)
-    turbidity = b4.divide(b3).rename('Turbidity')
+    # Turbidity Index (for contaminated water detection)
+    # Formula: B4/B2 (red/blue ratio)
+    # Higher values = more suspended sediments
+    turbidity = b4.divide(b2_safe).rename('Turbidity')
     
-    # NIR Anomaly: Elevated NIR in water indicates contamination
-    nir_anomaly = b5.subtract(0.05).rename('NIR_Anomaly')
+    # NIR Anomaly - Critical for AMD water detection
+    # Clean water: NIR < 1% (strong H₂O absorption)
+    # Contaminated water: NIR = 3-10% (particle scattering)
+    nir_anomaly = b5.rename('NIR_Anomaly')
     
-    # Red Anomaly: Elevated red in water indicates iron
-    red_anomaly = b4.subtract(0.05).rename('Red_Anomaly')
+    # Iron in Water Index
+    # Formula: (Red/Blue) - (NIR/Red)
+    # Combines: Red increase (Fe³⁺ color) + NIR increase (particle scattering)
+    iron_water = (b4.divide(b2_safe)
+                  .subtract(b5.divide(b4_safe))
+                  .rename('IronWaterIndex'))
     
-    # Iron Water Index: B4/B2 for water (same as land but interpreted differently)
-    iron_water = b4.divide(b2).rename('IronWaterIndex')
+    # Yellow Substance Index (Green/Blue)
+    # Detects dissolved/colloidal iron (Fe³⁺) shifting peak toward yellow-green
+    yellow_index = b3.divide(b2_safe).rename('YellowIndex')
     
-    # Yellow Index: B3/B2 (elevated green/blue ratio indicates iron-stained water)
-    yellow_index = b3.divide(b2).rename('YellowIndex')
+    # Water Depth Proxy
+    # Formula: ln(Blue) / ln(Green)
+    # Blue penetrates deeper than green; ratio decreases with depth
+    b2_log = b2.log().add(epsilon)
+    b3_log = b3.log().add(epsilon)
+    depth_proxy = b2_log.divide(b3_log).rename('DepthProxy')
     
-    # Depth Proxy: B2/B3 (blue/green ratio - higher = deeper water)
-    depth_proxy = b2.divide(b3).rename('DepthProxy')
+    # Red Anomaly - Additional contamination indicator
+    red_anomaly = b4.rename('Red_Anomaly')
     
     # =========================================================================
-    # BRIGHTNESS AND MASKING
+    # ADDITIONAL INDICES FOR MASKING
     # =========================================================================
     
-    # Overall brightness (average of visible bands)
-    brightness = b2.add(b3).add(b4).divide(3).rename('Brightness')
+    # Coastal/Blue Ratio - Detects iron sulfate absorption <450nm
+    coastal_blue_ratio = b1.divide(b2_safe).rename('CoastalBlueRatio')
+    
+    # NDBI - Normalized Difference Built-up Index
+    # Formula: (SWIR1 - NIR) / (SWIR1 + NIR)
+    # High values indicate urban/built-up areas
+    ndbi = image.normalizedDifference(['SR_B6', 'SR_B5']).rename('NDBI')
     
     # Combine all indices
     return image.addBands([
         iron_sulfate, ferric_iron1, ferric_iron2, ferrous_iron,
-        clay_sulfate, green_veg, ndvi, ndwi, mndwi, aweinsh,
-        turbidity, nir_anomaly, red_anomaly, iron_water,
-        yellow_index, depth_proxy, brightness
+        clay_sulfate, green_veg, ndvi, ndwi, mndwi, brightness, aweinsh,
+        turbidity, nir_anomaly, iron_water, yellow_index, depth_proxy,
+        red_anomaly, coastal_blue_ratio, ndbi
     ])
 
 
@@ -881,40 +925,57 @@ def create_water_quality_classification(composite: ee.Image,
 
 
 # =============================================================================
-# VISUALIZATION PALETTES
+# VISUALIZATION PALETTES (MATCHING JAVASCRIPT VERSION EXACTLY)
 # =============================================================================
 
+# 19-class land classification palette (matches JS updateDetection classVis)
 CLASSIFICATION_PALETTE = [
-    '#000000',  # 0: Unclassified
-    '#FFA07A',  # 1: Minor Ferric (Hematite)
-    '#FF6347',  # 2: Major Ferric Iron
-    '#FF4500',  # 3: Ferric + Ferrous
-    '#32CD32',  # 4: Ferrous/Chlorite
-    '#FFFF00',  # 5: Clay-Sulfate-Mica
-    '#FFD700',  # 6: Clay + Minor Ferric
-    '#FFA500',  # 7: Clay + Moderate Ferric
-    '#FF8C00',  # 8: Clay + Major Ferric
-    '#8B0000',  # 9: Argillic Alteration
-    '#9ACD32',  # 10: Clay + Ferrous
-    '#228B22',  # 11: Dense Green Vegetation
-    '#FF0000',  # 12: Major Iron Sulfate
-    '#90EE90',  # 13: Sparse Veg + Ferric
-    '#DC143C',  # 14: Oxidizing Sulfides
-    '#000000',  # 15: (unused)
-    '#000000',  # 16: (unused)
-    '#B22222',  # 17: Proximal Jarosite
-    '#CD5C5C',  # 18: Distal Jarosite
-    '#8B4513',  # 19: Clay + Ferrous + Iron
+    '#000000',  # 0: Unclassified/Background
+    '#8B7355',  # 1: Minor Ferric (light brown)
+    '#FF00FF',  # 2: Major Ferric Iron (magenta)
+    '#800080',  # 3: Ferric±Ferrous (purple)
+    '#00CED1',  # 4: Ferrous/Chlorite (dark cyan)
+    '#90EE90',  # 5: Clay-Sulfate-Mica (light green)
+    '#FFFF00',  # 6: Clay+Minor Ferric (yellow)
+    '#FFA500',  # 7: Clay+Mod Ferric (orange)
+    '#FF6347',  # 8: Clay+Major Ferric (tomato)
+    '#FF1493',  # 9: Argillic Alteration (deep pink) - EXTREME AMD
+    '#008B8B',  # 10: Clay+Ferrous (dark cyan)
+    '#228B22',  # 11: Dense Vegetation (forest green)
+    '#FF0000',  # 12: Major Iron Sulfate (RED) - HIGH AMD
+    '#9ACD32',  # 13: Sparse Veg+Ferric (yellow-green)
+    '#FFB6C1',  # 14: Oxidizing Sulfides (light pink)
+    '#000000',  # 15: Not used
+    '#000000',  # 16: Not used
+    '#DC143C',  # 17: Proximal Jarosite (crimson) - HIGH AMD
+    '#8B0000',  # 18: Distal Jarosite (dark red)
+    '#C71585',  # 19: Clay+Ferrous+Iron (medium violet red)
 ]
 
+# Water quality classification palette (matches JS water quality module)
 WATER_QUALITY_PALETTE = [
-    '#0000FF',  # 0: Clean water
-    '#FFA500',  # 1: Moderate contamination
-    '#FF4500',  # 2: Severe contamination
-    '#8B0000',  # 3: Extreme contamination
+    '#1E90FF',  # 0: Clean water (dodger blue)
+    '#FFA500',  # 1: Moderate contamination (orange)
+    '#FF0000',  # 2: Severe contamination (red)
 ]
 
-IRON_SULFATE_PALETTE = ['#FFFF00', '#FFA500', '#FF0000', '#8B0000']
+# Iron Sulfate Index visualization (matches JS Iron Sulfate layer)
+IRON_SULFATE_PALETTE = ['#00FFFF', '#FFFF00', '#FFA500', '#FF0000']  # cyan->yellow->orange->red
+
+# Water contamination score palette (0-7 scale)
+WATER_SCORE_PALETTE = [
+    '#0000FF', '#00FFFF', '#00FF00', '#FFFF00', 
+    '#FFA500', '#FF4500', '#FF0000', '#8B0000'
+]
+
+# True color and false color visualization parameters
+VIS_TRUE_COLOR = {'bands': ['SR_B4', 'SR_B3', 'SR_B2'], 'min': 0, 'max': 0.3}
+VIS_FALSE_COLOR = {'bands': ['SR_B5', 'SR_B4', 'SR_B3'], 'min': 0, 'max': 0.3}
+VIS_IRON_SULFATE = {'min': 1.15, 'max': 4.0, 'palette': IRON_SULFATE_PALETTE}
+VIS_FERRIC_IRON = {'min': 0, 'max': 3, 'palette': ['#FFFFFF', '#FFFF00', '#FF0000']}
+VIS_MNDWI = {'min': -1, 'max': 1, 'palette': ['#FF0000', '#FFFFFF', '#0000FF']}
+VIS_LAND_CLASS = {'min': 1, 'max': 19, 'palette': CLASSIFICATION_PALETTE[1:]}
+VIS_WATER_QUALITY = {'min': 0, 'max': 2, 'palette': WATER_QUALITY_PALETTE}
 
 
 # =============================================================================
@@ -1042,9 +1103,18 @@ def create_map(center: List[float] = None,
 
 def add_results_to_map(m: geemap.Map, 
                        results: dict,
-                       geometry: ee.Geometry = None) -> geemap.Map:
+                       geometry: ee.Geometry = None,
+                       show_diagnostics: bool = False) -> geemap.Map:
     """
-    Add AMD analysis results to a map.
+    Add AMD analysis results to a map (matches JavaScript layer structure).
+    
+    Adds layers in the same order as the JavaScript GEE version:
+    1. Land AMD Classification (19 classes)
+    2. Water Quality Classification (3 classes)
+    3. True Color reference
+    4. Iron Sulfate Index (diagnostic)
+    5. Ferric Iron Index (diagnostic)
+    6. MNDWI (diagnostic)
     
     Parameters
     ----------
@@ -1054,36 +1124,95 @@ def add_results_to_map(m: geemap.Map,
         Results dictionary from analyze_region().
     geometry : ee.Geometry, optional
         Region to clip visualization to.
+    show_diagnostics : bool, default False
+        If True, show diagnostic layers visible by default.
     
     Returns
     -------
     geemap.Map
         Map with added layers.
     """
+    composite = results['composite']
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # PRIMARY LAYERS (Visible by default - matches JS)
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # 1. LAND AMD CLASSIFICATION (19 classes)
+    m.addLayer(
+        results['land_classification'],
+        VIS_LAND_CLASS,
+        '🏔️ Land AMD Classification',
+        True  # Visible
+    )
+    
+    # 2. WATER QUALITY CLASSIFICATION (3 classes)
+    m.addLayer(
+        results['water_quality'].select('water_quality'),
+        VIS_WATER_QUALITY,
+        '🌊 Water Quality Classification',
+        True  # Visible
+    )
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # REFERENCE LAYERS (Hidden by default - matches JS)
+    # ═══════════════════════════════════════════════════════════════════════
+    
+    # True Color (RGB)
+    m.addLayer(
+        composite,
+        VIS_TRUE_COLOR,
+        '📷 True Color (RGB)',
+        False  # Hidden
+    )
+    
+    # False Color (NIR-R-G)
+    m.addLayer(
+        composite,
+        VIS_FALSE_COLOR,
+        '📷 False Color (NIR-R-G)',
+        False  # Hidden
+    )
+    
+    # ═══════════════════════════════════════════════════════════════════════
+    # DIAGNOSTIC LAYERS (Hidden by default - matches JS)
+    # ═══════════════════════════════════════════════════════════════════════
+    
     # Iron Sulfate Index
     m.addLayer(
         results['iron_sulfate'],
-        {'min': 1.0, 'max': 2.5, 'palette': IRON_SULFATE_PALETTE},
-        'Iron Sulfate Index'
+        VIS_IRON_SULFATE,
+        '🔬 Iron Sulfate Index',
+        show_diagnostics
     )
     
-    # Land Classification
+    # Ferric Iron Index
     m.addLayer(
-        results['land_classification'],
-        {'min': 0, 'max': 19, 'palette': CLASSIFICATION_PALETTE},
-        'Land AMD Classification'
+        composite.select('FerricIron1'),
+        VIS_FERRIC_IRON,
+        '🔬 Ferric Iron Index',
+        False
     )
     
-    # Water Quality
+    # MNDWI (Water)
     m.addLayer(
-        results['water_quality'].select('water_quality'),
-        {'min': 0, 'max': 3, 'palette': WATER_QUALITY_PALETTE},
-        'Water Quality'
+        composite.select('MNDWI'),
+        VIS_MNDWI,
+        '🔬 MNDWI (Water)',
+        False
+    )
+    
+    # Water Contamination Score (0-7)
+    m.addLayer(
+        results['water_quality'].select('score'),
+        {'min': 0, 'max': 7, 'palette': WATER_SCORE_PALETTE},
+        '📊 Water Score (0-7)',
+        False
     )
     
     # Add region boundary if provided
     if geometry:
-        m.addLayer(geometry, {'color': 'white'}, 'Study Area', False)
+        m.addLayer(geometry, {'color': 'white'}, 'Study Area Boundary', False)
     
     return m
 
