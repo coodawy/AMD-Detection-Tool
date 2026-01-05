@@ -85,6 +85,16 @@ def initialize_gee(project: str = "remote-sensing-class-fall-2025", auth_mode: s
 DEFAULT_SETTINGS = {
     # Sensor selection
     "sensor": "Landsat 8",
+    "cloud_masking_method": "Hybrid",
+    
+    # Compositing
+    "compositing_method": "median",
+    
+    # Date filtering
+    "use_specific_date": False,
+    "specific_start_date": "2024-01-01",
+    "specific_end_date": "2024-12-31",
+    "season_filter": "Summer (Jul-Sep)",
     
     # Iron sulfate detection thresholds (from Rockwell et al. 2021)
     "iron_sulfate_threshold": 1.15,
@@ -93,11 +103,16 @@ DEFAULT_SETTINGS = {
     "ferrous_iron_threshold": 1.05,
     "clay_sulfate_mica_threshold": 0.12,
     
-    # Vegetation and masking thresholds
+    # Vegetation thresholds - CRITICAL: JS uses 1.5 for greenVegThreshold!
+    "green_veg_threshold": 1.5,
     "ndvi_max": 0.25,
-    "green_veg_threshold": 3.5,
+    
+    # Brightness thresholds
     "brightness_min": 0.02,
     "brightness_max": 0.35,
+    
+    # Dark pixel masking (from paper Section 3.5)
+    "dark_mask_threshold": 0.2125,
     
     # Water detection thresholds
     "water_threshold": 0.30,  # MNDWI
@@ -109,14 +124,7 @@ DEFAULT_SETTINGS = {
     "buildup_ndvi_min": -0.10,
     "buildup_mndwi_max": -0.20,
     
-    # Dark pixel masking (from paper Section 3.5)
-    "dark_mask_threshold": 0.2125,
-    
-    # Contaminated water detection
-    "contaminated_water_threshold": 1.80,
-    "shallow_water_threshold": 1.30,
-    
-    # Cloud masking
+    # Cloud masking thresholds
     "cloud_probability_threshold": 20,
     "cs_threshold": 0.60,
     "cs_cdf_threshold": 0.60,
@@ -124,10 +132,50 @@ DEFAULT_SETTINGS = {
     # Adaptive thresholding (paper Section 3.3)
     "use_adaptive_thresholds": False,
     "iron_std_mult": 2.0,
-    "ferric_std_mult": 1.5,
+    "ferric1_std_mult": 1.5,
+    "ferric2_std_mult": 1.5,
+    "ferrous_std_mult": 1.5,
+    "clay_std_mult": 1.5,
     
     # Index clipping (paper Section 3.4)
     "use_index_clipping": False,
+    
+    # Water quality module
+    "enable_water_quality_module": True,
+    "contaminated_water_threshold": 1.80,
+    "shallow_water_threshold": 1.30,
+    "turbidity_threshold": 1.3,
+    
+    # NIR Anomaly thresholds
+    "nir_anomaly_threshold_moderate": 0.03,
+    "nir_anomaly_threshold_severe": 0.08,
+    
+    # Turbidity thresholds
+    "turbidity_ratio_moderate": 1.3,
+    "turbidity_ratio_severe": 2.0,
+    
+    # Iron Water Index thresholds
+    "iron_water_index_moderate": 0.15,
+    "iron_water_index_severe": 0.50,
+    
+    # Yellow Index thresholds
+    "yellow_index_moderate": 1.10,
+    "yellow_index_severe": 1.25,
+    
+    # NDWI threshold
+    "ndwi_clean_threshold": 0.20,
+    
+    # Scoring thresholds
+    "use_multi_criteria_score": True,
+    "score_threshold_moderate": 3,
+    "score_threshold_severe": 5,
+    
+    # Comparison options
+    "use_ndwi_comparison": False,
+    "ndwi_threshold": 0.0,
+    
+    # UI options
+    "show_accuracy_tools": False,
 }
 
 
@@ -136,13 +184,48 @@ DEFAULT_SETTINGS = {
 # =============================================================================
 
 STUDY_AREAS = {
+    # =========================================================================
+    # COMPLETE STUDY AREAS LIST (Matching JavaScript GEE Tool)
+    # =========================================================================
+    
+    # Iraq
+    "Ganau Pond, Iraq": ee.Geometry.Point([44.940463, 36.214839]).buffer(1000),
+    "Dukan Lake, Iraq": ee.Geometry.Point([44.921183, 36.125888]).buffer(20000),
+    
+    # California
     "Iron Mountain, CA": ee.Geometry.Point([-122.5278, 40.6722]).buffer(12000),
+    "Penn Mine, CA": ee.Geometry.Point([-120.82, 38.23]).buffer(5000),
+    
+    # Colorado
     "Summitville, CO": ee.Geometry.Point([-106.5978, 37.4361]).buffer(8000),
     "Silverton, CO": ee.Geometry.Point([-107.665, 37.812]).buffer(15000),
     "Red Mountain Pass, CO": ee.Geometry.Point([-107.72, 37.89]).buffer(10000),
+    "Leadville, CO": ee.Geometry.Point([-106.30, 39.25]).buffer(15000),
+    
+    # Nevada
     "Goldfield, NV": ee.Geometry.Point([-117.233, 37.708]).buffer(10000),
-    "Rio Tinto, Spain": ee.Geometry.Point([-6.5556, 37.6961]).buffer(10000),
-    "Atwood Lake, OH": ee.Geometry.Point([-81.2847, 40.5361]).buffer(5000),
+    
+    # Utah
+    "Bauer Mill, UT": ee.Geometry.Point([-112.388, 40.492]).buffer(3000),
+    "Marysvale, UT": ee.Geometry.Point([-112.233, 38.450]).buffer(10000),
+    
+    # Ohio - CRITICAL: Fixed Atwood Lake coordinates and buffer!
+    "Atwood Lake, OH": ee.Geometry.Point([-81.246189, 40.549551]).buffer(10000),
+    "Piedmont Lake, OH": ee.Geometry.Point([-81.222, 40.154]).buffer(10000),
+    "Clendening Lake, OH": ee.Geometry.Point([-81.25360, 40.27006]).buffer(10000),
+    "Delaware, OH": ee.Geometry.Point([-83.168502, 40.264754]).buffer(50000),
+    "Monday Creek, OH": ee.Geometry.Point([-82.20948, 39.48279]).buffer(15000),
+    "Lake Superior, OH": ee.Geometry.Point([-87.060472, 47.548672]).buffer(5000),
+    
+    # Montana
+    "Berkeley Pit, MT": ee.Geometry.Point([-112.5010, 46.0136]).buffer(5000),
+    
+    # Illinois
+    "Tab-Simco, IL": ee.Geometry.Point([-89.1, 37.7]).buffer(3000),
+    
+    # Egypt
+    "Lake Toshka, Egypt": ee.Geometry.Point([31.27994, 23.09845]).buffer(100000),
+    "Lake Nasser, Egypt": ee.Geometry.Point([32.21471, 22.73580]).buffer(100000),
 }
 
 
@@ -326,7 +409,10 @@ def mask_landsat8_clouds(image: ee.Image) -> ee.Image:
     """
     Apply cloud and shadow masking for Landsat 8 Collection 2.
     
-    Uses QA_PIXEL band with dilated clouds, cirrus, and shadow flags.
+    MATCHES JAVASCRIPT VERSION EXACTLY:
+    - Bit 3: Cloud
+    - Bit 4: Cloud confidence (NOT cloud shadow!)
+    - Bit 2: Cloud shadow
     
     Parameters
     ----------
@@ -340,17 +426,16 @@ def mask_landsat8_clouds(image: ee.Image) -> ee.Image:
     """
     qa = image.select('QA_PIXEL')
     
-    # Bit positions for cloud masking
-    cloud_bit = 1 << 3      # Cloud
-    shadow_bit = 1 << 4     # Cloud shadow
-    dilated_bit = 1 << 1    # Dilated cloud
-    cirrus_bit = 1 << 2     # Cirrus
+    # Bit positions for cloud masking - MATCHING JAVASCRIPT EXACTLY
+    # JavaScript uses: bitwiseAnd(1<<3).eq(0).and(bitwiseAnd(1<<4).eq(0)).and(bitwiseAnd(1<<2).eq(0))
+    cloud_bit = 1 << 3       # Bit 3: Cloud
+    cloud_conf_bit = 1 << 4  # Bit 4: Cloud confidence (JS uses this, NOT shadow!)
+    shadow_bit = 1 << 2      # Bit 2: Cloud shadow (JS uses this position)
     
     # Create mask: 0 = cloudy, 1 = clear
     mask = (qa.bitwiseAnd(cloud_bit).eq(0)
-            .And(qa.bitwiseAnd(shadow_bit).eq(0))
-            .And(qa.bitwiseAnd(dilated_bit).eq(0))
-            .And(qa.bitwiseAnd(cirrus_bit).eq(0)))
+            .And(qa.bitwiseAnd(cloud_conf_bit).eq(0))
+            .And(qa.bitwiseAnd(shadow_bit).eq(0)))
     
     # Scale surface reflectance bands to 0-1
     optical = image.select('SR_B[1-7]').multiply(0.0000275).add(-0.2).clamp(0, 1)
@@ -381,12 +466,14 @@ def mask_sentinel2_clouds(image: ee.Image,
         Cloud-masked image with scaled surface reflectance (0-1).
     """
     # SCL-based masking (Scene Classification Layer)
+    # MATCHES JAVASCRIPT: Classes 3, 8, 9, 10 excluded
+    # NOTE: Class 11 (snow/ice) is NOT excluded - matches JS behavior!
     scl = image.select('SCL')
     scl_mask = (scl.neq(3)   # Cloud shadow
                 .And(scl.neq(8))   # Cloud medium probability
                 .And(scl.neq(9))   # Cloud high probability
-                .And(scl.neq(10))  # Thin cirrus
-                .And(scl.neq(11))) # Snow/ice
+                .And(scl.neq(10))) # Thin cirrus
+    # NOT excluding class 11 (snow/ice) - this matches JavaScript version
     
     # Cloud probability masking
     cloud_prob = image.select('MSK_CLDPRB')
@@ -411,10 +498,22 @@ def mask_sentinel2_clouds(image: ee.Image,
 # IMAGE COLLECTION FUNCTIONS
 # =============================================================================
 
+# Seasonal filtering months (matching JavaScript SEASON_MONTHS)
+SEASON_MONTHS = {
+    'All Year': None,
+    'Summer (Jul-Sep)': [7, 8, 9],
+    'Winter (Dec-Feb)': [12, 1, 2],
+    'Spring (Mar-May)': [3, 4, 5],
+    'Fall (Sep-Nov)': [9, 10, 11],
+    'Snow-Free (May-Oct)': [5, 6, 7, 8, 9, 10]
+}
+
+
 def get_landsat8_collection(geometry: ee.Geometry,
                             start_date: str,
                             end_date: str,
-                            cloud_cover_max: int = 30) -> ee.ImageCollection:
+                            cloud_cover_max: int = 30,
+                            season: str = None) -> ee.ImageCollection:
     """
     Get Landsat 8 Collection 2 Level-2 imagery for a region.
     
@@ -428,6 +527,8 @@ def get_landsat8_collection(geometry: ee.Geometry,
         End date in 'YYYY-MM-DD' format.
     cloud_cover_max : int, default 30
         Maximum cloud cover percentage for filtering.
+    season : str, optional
+        Season filter from SEASON_MONTHS. None for all year.
     
     Returns
     -------
@@ -437,16 +538,65 @@ def get_landsat8_collection(geometry: ee.Geometry,
     collection = (ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
                   .filterBounds(geometry)
                   .filterDate(start_date, end_date)
-                  .filter(ee.Filter.lt('CLOUD_COVER', cloud_cover_max))
-                  .map(mask_landsat8_clouds))
+                  .filter(ee.Filter.lt('CLOUD_COVER', cloud_cover_max)))
     
-    return collection
+    # Apply seasonal filter if specified
+    if season and season in SEASON_MONTHS and SEASON_MONTHS[season]:
+        months = SEASON_MONTHS[season]
+        collection = collection.filter(
+            ee.Filter.calendarRange(months[0], months[-1], 'month'))
+    
+    return collection.map(mask_landsat8_clouds)
+
+
+def get_landsat9_collection(geometry: ee.Geometry,
+                            start_date: str,
+                            end_date: str,
+                            cloud_cover_max: int = 30,
+                            season: str = None) -> ee.ImageCollection:
+    """
+    Get Landsat 9 Collection 2 Level-2 imagery for a region.
+    
+    Uses same processing as Landsat 8 (compatible bands).
+    
+    Parameters
+    ----------
+    geometry : ee.Geometry
+        Area of interest.
+    start_date : str
+        Start date in 'YYYY-MM-DD' format.
+    end_date : str
+        End date in 'YYYY-MM-DD' format.
+    cloud_cover_max : int, default 30
+        Maximum cloud cover percentage for filtering.
+    season : str, optional
+        Season filter from SEASON_MONTHS. None for all year.
+    
+    Returns
+    -------
+    ee.ImageCollection
+        Filtered and processed Landsat 9 collection.
+    """
+    collection = (ee.ImageCollection('LANDSAT/LC09/C02/T1_L2')
+                  .filterBounds(geometry)
+                  .filterDate(start_date, end_date)
+                  .filter(ee.Filter.lt('CLOUD_COVER', cloud_cover_max)))
+    
+    # Apply seasonal filter if specified
+    if season and season in SEASON_MONTHS and SEASON_MONTHS[season]:
+        months = SEASON_MONTHS[season]
+        collection = collection.filter(
+            ee.Filter.calendarRange(months[0], months[-1], 'month'))
+    
+    # Uses same cloud masking as Landsat 8
+    return collection.map(mask_landsat8_clouds)
 
 
 def get_sentinel2_collection(geometry: ee.Geometry,
                              start_date: str,
                              end_date: str,
-                             cloud_cover_max: int = 30) -> ee.ImageCollection:
+                             cloud_cover_max: int = 30,
+                             season: str = None) -> ee.ImageCollection:
     """
     Get Sentinel-2 Level-2A imagery for a region.
     
@@ -460,6 +610,8 @@ def get_sentinel2_collection(geometry: ee.Geometry,
         End date in 'YYYY-MM-DD' format.
     cloud_cover_max : int, default 30
         Maximum cloud cover percentage for filtering.
+    season : str, optional
+        Season filter from SEASON_MONTHS. None for all year.
     
     Returns
     -------
@@ -469,10 +621,15 @@ def get_sentinel2_collection(geometry: ee.Geometry,
     collection = (ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
                   .filterBounds(geometry)
                   .filterDate(start_date, end_date)
-                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloud_cover_max))
-                  .map(mask_sentinel2_clouds))
+                  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', cloud_cover_max)))
     
-    return collection
+    # Apply seasonal filter if specified
+    if season and season in SEASON_MONTHS and SEASON_MONTHS[season]:
+        months = SEASON_MONTHS[season]
+        collection = collection.filter(
+            ee.Filter.calendarRange(months[0], months[-1], 'month'))
+    
+    return collection.map(mask_sentinel2_clouds)
 
 
 def create_composite(collection: ee.ImageCollection,
@@ -481,12 +638,19 @@ def create_composite(collection: ee.ImageCollection,
     """
     Create a composite image from a collection and calculate spectral indices.
     
+    MATCHES JAVASCRIPT COMPOSITING METHODS:
+    - median: Pixel-wise median (default, most robust)
+    - mean: Pixel-wise mean
+    - mosaic: Simple mosaic (most recent on top)
+    - latest: Latest image mosaic (sorted by time)
+    - quality: Quality mosaic using NIR (SR_B5) as quality band
+    
     Parameters
     ----------
     collection : ee.ImageCollection
         Input image collection.
     method : str, default "median"
-        Compositing method: "median", "mean", "max", or "min".
+        Compositing method: "median", "mean", "mosaic", "latest", "quality".
     sensor : str, default "Landsat 8"
         Sensor type for index calculation.
     
@@ -495,15 +659,19 @@ def create_composite(collection: ee.ImageCollection,
     ee.Image
         Composite image with all spectral indices.
     """
-    # Create composite
+    # Create composite - MATCHING JAVASCRIPT METHODS
     if method == "median":
         composite = collection.median()
     elif method == "mean":
         composite = collection.mean()
-    elif method == "max":
-        composite = collection.max()
-    elif method == "min":
-        composite = collection.min()
+    elif method == "mosaic":
+        composite = collection.mosaic()
+    elif method == "latest":
+        # Sort by time (descending) and mosaic
+        composite = collection.sort('system:time_start', False).mosaic()
+    elif method == "quality":
+        # Quality mosaic using NIR band as quality indicator
+        composite = collection.qualityMosaic('SR_B5')
     else:
         composite = collection.median()
     
@@ -555,11 +723,75 @@ def create_water_mask(composite: ee.Image, settings: dict = None) -> ee.Image:
     return water_mask
 
 
+def create_vegetation_road_mask(composite: ee.Image, settings: dict = None) -> ee.Image:
+    """
+    Create combined vegetation and road mask with iron signal bypass.
+    
+    MATCHES JAVASCRIPT VERSION EXACTLY:
+    - Green/Red <= 1.0 (ALWAYS required - no vegetation green peak)
+    - NOT a road (unless strong iron signal bypasses road check)
+    - Either NDVI < threshold OR (hasHighIron AND lowSWIR1 AND notDenseVeg)
+    
+    Parameters
+    ----------
+    composite : ee.Image
+        Composite image with spectral indices.
+    settings : dict, optional
+        Settings dictionary. Uses DEFAULT_SETTINGS if None.
+    
+    Returns
+    -------
+    ee.Image
+        Binary mask where 1 = passes (valid for AMD detection), 0 = excluded.
+    """
+    if settings is None:
+        settings = DEFAULT_SETTINGS
+    
+    ndvi = composite.select('NDVI')
+    green_veg = composite.select('GreenVeg')
+    iron = composite.select('IronSulfate')
+    b3 = composite.select('SR_B3')  # Green
+    b4 = composite.select('SR_B4')  # Red
+    b6 = composite.select('SR_B6')  # SWIR1
+    
+    # Green/Red ratio (chlorophyll detection)
+    green_red_ratio = b3.divide(b4.add(0.0001))
+    
+    # Multi-criteria iron soil detection (matching JavaScript exactly)
+    # KEY INSIGHTS:
+    #   1. Green/Red > 1.0 = vegetation (chlorophyll green peak)
+    #   2. High SWIR1 (>0.20) + low NDVI + weak iron = roads/buildings (asphalt)
+    #   3. High SWIR1 + STRONG iron (>2.5) = REAL iron minerals (iron oxides have high SWIR1!)
+    
+    no_green_peak = green_red_ratio.lte(1.0)           # Red >= Green (no chlorophyll)
+    low_swir1 = b6.lt(0.20)                            # SWIR1 < 0.20 (not road/impervious)
+    not_dense_veg = green_veg.lt(3.5)                  # Not extremely high vegetation index
+    strong_iron_signal = iron.gt(2.5)                  # Strong iron = likely real minerals
+    has_high_iron = iron.gt(settings["iron_sulfate_threshold"])
+    
+    # Road detection: low NDVI + high SWIR1 + weak iron signal
+    # BYPASS road detection if Iron Sulfate > 2.5 (strong detection = real minerals)
+    is_road = ndvi.lt(0.25).And(b6.gte(0.20)).And(strong_iron_signal.Not())
+    
+    # A pixel passes if ALL of:
+    #   1. Green/Red <= 1.0 (ALWAYS required - no green peak)
+    #   2. NOT a road (unless strong iron signal bypasses road check)
+    #   3. Either NDVI < ndvi_max OR (hasHighIron AND lowSWIR1 AND notDenseVeg)
+    passes_veg_road_mask = (no_green_peak
+        .And(is_road.Not())
+        .And(
+            ndvi.lt(settings["ndvi_max"])
+            .Or(has_high_iron.And(low_swir1).And(not_dense_veg))
+        ))
+    
+    return passes_veg_road_mask
+
+
 def create_vegetation_mask(composite: ee.Image, settings: dict = None) -> ee.Image:
     """
-    Create a vegetation mask using multiple criteria.
+    Create a simple vegetation mask (legacy function).
     
-    Combines NDVI, Green/Red ratio, and GreenVeg index for robust detection.
+    For full JavaScript-matching behavior, use create_vegetation_road_mask() instead.
     
     Parameters
     ----------
@@ -582,12 +814,8 @@ def create_vegetation_mask(composite: ee.Image, settings: dict = None) -> ee.Ima
     b4 = composite.select('SR_B4')  # Red
     
     # Green/Red ratio (chlorophyll detection)
-    green_red_ratio = b3.divide(b4)
+    green_red_ratio = b3.divide(b4.add(0.0001))
     
-    # Multi-criteria vegetation mask
-    # Pixel passes if:
-    # 1. Green/Red <= 1.0 (no chlorophyll peak)
-    # 2. NDVI < threshold OR has high iron signal
     no_green_peak = green_red_ratio.lte(1.0)
     low_ndvi = ndvi.lt(settings["ndvi_max"])
     not_dense_veg = green_veg.lt(settings["green_veg_threshold"])
@@ -680,6 +908,90 @@ def create_road_mask(composite: ee.Image, settings: dict = None) -> ee.Image:
 
 
 # =============================================================================
+# ADAPTIVE THRESHOLDING FUNCTIONS (Matching JavaScript)
+# =============================================================================
+
+def apply_std_dev_thresholding(index_image: ee.Image, 
+                                band_name: str,
+                                region: ee.Geometry,
+                                multiplier: float = 2.0) -> ee.Image:
+    """
+    Apply standard deviation-based adaptive thresholding.
+    
+    Calculates threshold as: mean + (stdDev × multiplier)
+    MATCHES JAVASCRIPT applyStdDevThresholding() function.
+    
+    Parameters
+    ----------
+    index_image : ee.Image
+        Single-band index image.
+    band_name : str
+        Band name for statistics calculation.
+    region : ee.Geometry
+        Region to calculate statistics over.
+    multiplier : float, default 2.0
+        Standard deviation multiplier.
+    
+    Returns
+    -------
+    ee.Image
+        Binary mask where index > adaptive threshold.
+    """
+    stats = index_image.reduceRegion(
+        reducer=ee.Reducer.mean().combine(ee.Reducer.stdDev(), '', True),
+        geometry=region,
+        scale=100,
+        maxPixels=1e9,
+        bestEffort=True
+    )
+    
+    mean = ee.Number(stats.get(band_name + '_mean'))
+    std_dev = ee.Number(stats.get(band_name + '_stdDev'))
+    threshold = mean.add(std_dev.multiply(multiplier))
+    
+    return index_image.gt(threshold)
+
+
+def apply_index_clipping(index_image: ee.Image,
+                         band_name: str,
+                         region: ee.Geometry,
+                         percentile_clip: int = 30) -> ee.Image:
+    """
+    Apply percentile-based index clipping.
+    
+    Sets values below the specified percentile to 0.
+    MATCHES JAVASCRIPT applyIndexClipping() function.
+    
+    Parameters
+    ----------
+    index_image : ee.Image
+        Single-band index image.
+    band_name : str
+        Band name for statistics calculation.
+    region : ee.Geometry
+        Region to calculate statistics over.
+    percentile_clip : int, default 30
+        Percentile threshold (values below this are set to 0).
+    
+    Returns
+    -------
+    ee.Image
+        Index image with values below percentile set to 0.
+    """
+    stats = index_image.reduceRegion(
+        reducer=ee.Reducer.percentile([percentile_clip]),
+        geometry=region,
+        scale=100,
+        maxPixels=1e9,
+        bestEffort=True
+    )
+    
+    clip_value = ee.Number(stats.get(band_name + '_p' + str(percentile_clip)))
+    
+    return index_image.where(index_image.lt(clip_value), 0)
+
+
+# =============================================================================
 # CLASSIFICATION FUNCTIONS
 # =============================================================================
 
@@ -736,17 +1048,16 @@ def create_land_classification(composite: ee.Image,
     
     # Create exclusion masks
     water_mask = create_water_mask(composite, settings)
-    veg_mask = create_vegetation_mask(composite, settings)
+    veg_road_mask = create_vegetation_road_mask(composite, settings)  # Combined mask with iron bypass
     buildup_mask = create_buildup_mask(composite, sensor, settings)
-    road_mask = create_road_mask(composite, settings)
     
-    # Combined land mask for AMD classification
+    # Combined land mask for AMD classification - MATCHES JAVASCRIPT EXACTLY
+    # Uses combined veg/road mask instead of separate masks
     amd_land_mask = (water_mask.Not()
                      .And(not_bright)
                      .And(not_dark)
                      .And(buildup_mask.Not())
-                     .And(veg_mask)
-                     .And(road_mask.Not()))
+                     .And(veg_road_mask))  # Combined veg+road mask with iron bypass!
     
     # Standard land mask for non-AMD minerals
     standard_land_mask = amd_land_mask
@@ -885,40 +1196,59 @@ def create_water_quality_classification(composite: ee.Image,
     ndwi = composite.select('NDWI')
     brightness = composite.select('Brightness')
     
-    # Multi-criteria scoring (0-8 points)
+    # Multi-criteria scoring (0-7 points) - USING SETTINGS, NOT HARDCODED VALUES
     score = ee.Image(0)
     
     # Valid brightness for water
     valid_brightness = brightness.gt(0.05).And(brightness.lt(0.20))
     
-    # Criterion 1: Iron Sulfate Index (2 points)
-    score = score.where(iron_sulfate.gt(settings["contaminated_water_threshold"]).And(valid_brightness), score.add(2))
+    # Criterion 1: Iron Sulfate Index (2 points) - with brightness validation
+    score = score.where(
+        iron_sulfate.gt(settings["contaminated_water_threshold"]).And(valid_brightness), 
+        score.add(2))
     
-    # Criterion 2: NIR Anomaly (2 points total)
-    score = score.where(nir_anomaly.gt(0.03), score.add(1))
-    score = score.where(nir_anomaly.gt(0.08), score.add(1))
+    # Criterion 2: NIR Anomaly (2 points total) - USING SETTINGS
+    score = score.where(
+        nir_anomaly.gt(settings["nir_anomaly_threshold_moderate"]), 
+        score.add(1))
+    score = score.where(
+        nir_anomaly.gt(settings["nir_anomaly_threshold_severe"]), 
+        score.add(1))
     
-    # Criterion 3: Turbidity (2 points total)
-    score = score.where(turbidity.gt(1.30), score.add(1))
-    score = score.where(turbidity.gt(2.00), score.add(1))
+    # Criterion 3: Turbidity (2 points total) - USING SETTINGS
+    score = score.where(
+        turbidity.gt(settings["turbidity_ratio_moderate"]), 
+        score.add(1))
+    score = score.where(
+        turbidity.gt(settings["turbidity_ratio_severe"]), 
+        score.add(1))
     
-    # Criterion 4: Iron Water Index (1 point)
-    score = score.where(iron_water.gt(0.15), score.add(1))
+    # Criterion 4: Iron Water Index (1 point) - USING SETTINGS
+    score = score.where(
+        iron_water.gt(settings["iron_water_index_moderate"]), 
+        score.add(1))
     
-    # Criterion 5: Yellow Index (1 point)
-    score = score.where(yellow_index.gt(1.10), score.add(1))
+    # Criterion 5: Yellow Index (1 point) - USING SETTINGS
+    score = score.where(
+        yellow_index.gt(settings["yellow_index_moderate"]), 
+        score.add(1))
     
-    # Criterion 6: NDWI Degradation (1 point)
-    score = score.where(ndwi.lt(0.20), score.add(1))
+    # Criterion 6: NDWI Degradation (1 point) - USING SETTINGS
+    score = score.where(
+        ndwi.lt(settings["ndwi_clean_threshold"]), 
+        score.add(1))
     
     # Apply water mask
     score = score.updateMask(deep_water_mask)
     
-    # Classify into categories
-    water_quality = ee.Image(0)
-    water_quality = water_quality.where(score.gte(1).And(score.lt(3)), 1)  # Moderate
-    water_quality = water_quality.where(score.gte(3).And(score.lt(5)), 2)  # Severe
-    water_quality = water_quality.where(score.gte(5), 3)                    # Extreme
+    # Classify into categories - MATCHING JAVASCRIPT (2 classes: moderate, severe)
+    # JavaScript uses: score >= scoreThresholdModerate = 1 (Moderate)
+    #                  score >= scoreThresholdSevere = 2 (Severe)
+    water_quality = ee.Image(0)  # 0 = Clean water
+    water_quality = water_quality.where(
+        score.gte(settings["score_threshold_moderate"]), 1)  # Moderate
+    water_quality = water_quality.where(
+        score.gte(settings["score_threshold_severe"]), 2)    # Severe
     water_quality = water_quality.updateMask(deep_water_mask)
     
     return water_quality.addBands(score.rename('score')).rename(['water_quality', 'score'])
@@ -1036,7 +1366,9 @@ def analyze_region(geometry: ee.Geometry,
     # Get image collection based on sensor
     if sensor == "Sentinel-2":
         collection = get_sentinel2_collection(geometry, start_date, end_date, cloud_cover_max)
-    else:
+    elif sensor == "Landsat 9":
+        collection = get_landsat9_collection(geometry, start_date, end_date, cloud_cover_max)
+    else:  # Default to Landsat 8
         collection = get_landsat8_collection(geometry, start_date, end_date, cloud_cover_max)
     
     # Create composite
@@ -1223,12 +1555,14 @@ def add_results_to_map(m: geemap.Map,
 
 def export_to_drive(image: ee.Image,
                     description: str,
-                    folder: str = "AMD_Detection",
+                    folder: str = "GEE_Exports",
                     region: ee.Geometry = None,
                     scale: int = 30,
-                    crs: str = "EPSG:4326") -> ee.batch.Task:
+                    crs: str = "EPSG:4326",
+                    file_format: str = "GeoTIFF",
+                    cloud_optimized: bool = True) -> ee.batch.Task:
     """
-    Export an image to Google Drive.
+    Export an image to Google Drive (matching JavaScript export options).
     
     Parameters
     ----------
@@ -1236,27 +1570,39 @@ def export_to_drive(image: ee.Image,
         Image to export.
     description : str
         Export task description (also used as filename).
-    folder : str, default "AMD_Detection"
-        Google Drive folder name.
+    folder : str, default "GEE_Exports"
+        Google Drive folder name (matches JavaScript default).
     region : ee.Geometry, optional
         Region to export. Required if image is not bounded.
     scale : int, default 30
         Export resolution in meters.
     crs : str, default "EPSG:4326"
         Coordinate reference system.
+    file_format : str, default "GeoTIFF"
+        Output file format.
+    cloud_optimized : bool, default True
+        Whether to create cloud-optimized GeoTIFF (COG).
     
     Returns
     -------
     ee.batch.Task
         Export task (call .start() to begin export).
     """
+    # Build format options (matching JavaScript)
+    format_options = {}
+    if file_format == "GeoTIFF" and cloud_optimized:
+        format_options = {'cloudOptimized': True}
+    
     task = ee.batch.Export.image.toDrive(
         image=image,
         description=description,
         folder=folder,
+        fileNamePrefix=description,  # Match JavaScript behavior
         region=region,
         scale=scale,
         crs=crs,
+        fileFormat=file_format,
+        formatOptions=format_options,
         maxPixels=1e13
     )
     
