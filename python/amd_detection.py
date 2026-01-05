@@ -1518,11 +1518,43 @@ def add_results_to_map(m: geemap.Map,
         show_diagnostics
     )
     
-    # Ferric Iron Index
+    # Ferric Iron 1 Index
     m.addLayer(
         composite.select('FerricIron1'),
         VIS_FERRIC_IRON,
-        '🔬 Ferric Iron Index',
+        '🔬 Ferric Iron 1',
+        False
+    )
+    
+    # Ferric Iron 2 Index
+    m.addLayer(
+        composite.select('FerricIron2'),
+        {'min': 0, 'max': 5, 'palette': ['#FFFFFF', '#FFFF00', '#FF0000']},
+        '🔬 Ferric Iron 2',
+        False
+    )
+    
+    # Ferrous Iron Index
+    m.addLayer(
+        composite.select('FerrousIron'),
+        {'min': 0.8, 'max': 1.5, 'palette': ['#FFFFFF', '#00CED1', '#008B8B']},
+        '🔬 Ferrous Iron',
+        False
+    )
+    
+    # Clay-Sulfate-Mica Index
+    m.addLayer(
+        composite.select('ClaySulfateMica'),
+        {'min': -0.2, 'max': 0.5, 'palette': ['#0000FF', '#FFFFFF', '#90EE90']},
+        '🔬 Clay-Sulfate-Mica',
+        False
+    )
+    
+    # NDVI (Vegetation)
+    m.addLayer(
+        composite.select('NDVI'),
+        {'min': -0.2, 'max': 0.8, 'palette': ['#8B4513', '#FFFF00', '#228B22']},
+        '🔬 NDVI (Vegetation)',
         False
     )
     
@@ -1534,6 +1566,10 @@ def add_results_to_map(m: geemap.Map,
         False
     )
     
+    # ═══════════════════════════════════════════════════════════════════════
+    # WATER QUALITY DIAGNOSTIC LAYERS (Hidden by default - matches JS)
+    # ═══════════════════════════════════════════════════════════════════════
+    
     # Water Contamination Score (0-7)
     m.addLayer(
         results['water_quality'].select('score'),
@@ -1542,9 +1578,122 @@ def add_results_to_map(m: geemap.Map,
         False
     )
     
+    # NIR Anomaly (Water) - MATCHING JS
+    m.addLayer(
+        composite.select('NIR_Anomaly'),
+        {'min': -0.05, 'max': 0.15, 'palette': ['#0000FF', '#FFFFFF', '#FF0000']},
+        '🔬 NIR Anomaly (Water)',
+        False
+    )
+    
+    # Turbidity Ratio - MATCHING JS
+    m.addLayer(
+        composite.select('Turbidity'),
+        {'min': 0.5, 'max': 3.0, 'palette': ['#0000FF', '#FFFFFF', '#8B4513']},
+        '🔬 Turbidity Ratio',
+        False
+    )
+    
+    # Iron Water Index
+    m.addLayer(
+        composite.select('IronWaterIndex'),
+        {'min': -0.3, 'max': 0.8, 'palette': ['#0000FF', '#FFFFFF', '#FF0000']},
+        '🔬 Iron Water Index',
+        False
+    )
+    
+    # Yellow Index
+    m.addLayer(
+        composite.select('YellowIndex'),
+        {'min': 0.8, 'max': 1.5, 'palette': ['#FFFFFF', '#FFFF00', '#FFA500']},
+        '🔬 Yellow Index',
+        False
+    )
+    
+    # Brightness
+    m.addLayer(
+        composite.select('Brightness'),
+        {'min': 0, 'max': 0.4, 'palette': ['#000000', '#FFFFFF']},
+        '🔬 Brightness',
+        False
+    )
+    
     # Add region boundary if provided
     if geometry:
-        m.addLayer(geometry, {'color': 'white'}, 'Study Area Boundary', False)
+        m.addLayer(geometry, {'color': 'white'}, '📍 Study Area Boundary', False)
+    
+    return m
+
+
+def add_legend_to_map(m: geemap.Map) -> geemap.Map:
+    """
+    Add AMD classification legend to the map.
+    
+    Parameters
+    ----------
+    m : geemap.Map
+        Map object to add legend to.
+    
+    Returns
+    -------
+    geemap.Map
+        Map with legend added.
+    """
+    # Land classification legend
+    land_legend_dict = {
+        '1: Minor Ferric': '#8B7355',
+        '2: Major Ferric Iron': '#FF00FF',
+        '3: Ferric±Ferrous': '#800080',
+        '4: Ferrous/Chlorite': '#00CED1',
+        '5: Clay-Sulfate-Mica': '#90EE90',
+        '6: Clay+Minor Ferric': '#FFFF00',
+        '7: Clay+Mod Ferric': '#FFA500',
+        '8: Clay+Major Ferric': '#FF6347',
+        '9: Argillic Alteration (EXTREME)': '#FF1493',
+        '10: Clay+Ferrous': '#008B8B',
+        '11: Dense Vegetation': '#228B22',
+        '12: Major Iron Sulfate (HIGH)': '#FF0000',
+        '13: Sparse Veg+Ferric': '#9ACD32',
+        '14: Oxidizing Sulfides': '#FFB6C1',
+        '17: Proximal Jarosite (HIGH)': '#DC143C',
+        '18: Distal Jarosite': '#8B0000',
+        '19: Clay+Ferrous+Iron': '#C71585',
+    }
+    
+    m.add_legend(
+        title='🏔️ Land AMD Classification',
+        legend_dict=land_legend_dict,
+        position='bottomright'
+    )
+    
+    return m
+
+
+def add_water_legend_to_map(m: geemap.Map) -> geemap.Map:
+    """
+    Add water quality legend to the map.
+    
+    Parameters
+    ----------
+    m : geemap.Map
+        Map object to add legend to.
+    
+    Returns
+    -------
+    geemap.Map
+        Map with legend added.
+    """
+    water_legend_dict = {
+        '0: Clean Water': '#1E90FF',
+        '1: Moderate Contamination': '#FFA500',
+        '2: Severe Contamination': '#FF0000',
+    }
+    
+    m.add_legend(
+        title='🌊 Water Quality',
+        legend_dict=water_legend_dict,
+        position='bottomleft'
+    )
     
     return m
 
