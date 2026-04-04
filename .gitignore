@@ -1,28 +1,13 @@
-# IDE specific files
+# IDE and Editor Files
 .vscode/
 .idea/
 *.sublime-workspace
 *.sublime-project
+*.swp
+*.swo
+*~
 
-# Environment variables
-.env
-.env.local
-
-# Dependencies
-node_modules/
-venv/
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS generated files
+# Operating System Files
 .DS_Store
 .DS_Store?
 ._*
@@ -31,136 +16,24 @@ yarn-error.log*
 ehthumbs.db
 Thumbs.db
 
-# Earth Engine exports
-GEE_Exports/
-*.tif
-*.tiff
-*.geojson
-*.shp
-*.shx
-*.dbf
-*.prj
-*.xml
-
 # Python
-*.pyc
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environment
-venv/
-ENV/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Local development
-.local/
-
-# Project specific
-data/
-output/
-*.geojson
-*.shp
-*.shx
-*.dbf
-*.prj
-*.cpg
-*.xml
-*.tif
-*.tiff
-*.vrt
-*.ovr
-*.aux.xml
-*.rrd
-*.msi
-*.msm
-*.msp
-*.pyd
-*.pth
 *.pyc
 *.pyo
 *.pyd
 .python-version
 
-# Ignore any .env files except .env.example
-.env*
-!.env.example
-
-# Ignore large files
-*.zip
-*.tar.gz
-*.7z
-*.dmg
-*.pkg
-*.deb
-*.rpm
-
-# Ignore IDE specific files
-.idea/
-.vscode/
-*.sublime-workspace
-*.sublime-project
-
-# Ignore system files
-.DS_Store
-Thumbs.db
-
-# Ignore any local configuration files
-local_settings.py
-
-# Ignore coverage reports
-htmlcov/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Ignore virtual environment
+# Virtual Environments
 venv/
-ENV/
-
-# Ignore database
-*.sqlite3
-
-# Ignore Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# Ignore Python cache
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Ignore environment files
-.env
-.venv
 env/
-venv/
 ENV/
+.venv
 
-# Ignore distribution / packaging
-.Python
+# Distribution / Packaging
 build/
 develop-eggs/
 dist/
@@ -177,7 +50,7 @@ wheels/
 .installed.cfg
 *.egg
 
-# Ignore unit test / coverage reports
+# Testing and Coverage
 htmlcov/
 .tox/
 .nox/
@@ -190,23 +63,40 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Ignore development files
-.DS_Store
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Environment Variables
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env*
+!.env.example
 
-# Ignore npm debug logs
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Ignore local development files
-.local/
+# Database
+*.sqlite3
+*.db
 
-# Ignore project specific files
+# Node.js Dependencies
+node_modules/
+
+# Local Development
+.local/
+local_settings.py
+
+# Earth Engine Exports and Geospatial Data
 GEE_Exports/
+data/
+output/
 *.tif
 *.tiff
 *.geojson
@@ -219,16 +109,16 @@ GEE_Exports/
 *.vrt
 *.ovr
 *.aux.xml
-*.rrd
-*.msi
-*.msm
-*.msp
-*.pyd
-*.pth
-*.pyc
-*.pyo
-*.pyd
-.python-version
 
-# Large PDF files
-*.pdf
+# Compressed Archives
+*.zip
+*.tar.gz
+*.7z
+*.rar
+*.dmg
+*.pkg
+*.deb
+*.rpm
+
+# Large Reference Files (keep paper.pdf in repo)
+# *.pdf

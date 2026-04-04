@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Acid Mine Drainage Detection System: Advanced Remote Sensing for Environmental Monitoring"
+version: 1.5.4
+date-released: 2025-01-09
+authors:
+  - family-names: "Hussein"
+    given-names: "Abdulrahman Rabie Ahmed"
+    orcid: "https://orcid.org/0009-0003-0401-9219"
+    affiliation: "Kent State University, Department of Earth Sciences"
+    email: "abdulrahman@climtawy.com"
+repository-code: "https://github.com/coodawy/AMD-Detection-Tool"
+url: "https://www.climtawy.com"
+abstract: >
+  Automated detection and mapping system for acid mine drainage (AMD) and iron sulfate
+  minerals using Landsat 8/9 and Sentinel-2 satellite imagery. Extends USGS terrestrial
+  mineral detection methodology (Rockwell et al., 2021) to contaminated water bodies.
+  Implements multi-criteria water quality scoring (0-7 points) combining spectral indices
+  for large-scale environmental monitoring. Open-source Google Earth Engine implementation
+  enabling cost-effective watershed assessment worldwide.
+keywords:
+  - "acid mine drainage"
+  - "remote sensing"
+  - "water quality"
+  - "environmental monitoring"
+  - "satellite imagery"
+  - "Google Earth Engine"
+  - "Landsat"
+  - "Sentinel-2"
+  - "iron sulfate minerals"
+  - "contamination detection"
+license: MIT
+references:
+  - type: article
+    authors:
+      - family-names: "Rockwell"
+        given-names: "Barnaby W."
+      - family-names: "McDougal"
+        given-names: "Raymond R."
+      - family-names: "Gent"
+        given-names: "Carol A."
+    title: "Improved automated identification and mapping of iron sulfate minerals, other mineral groups, and vegetation using Landsat 8 Operational Land Imager data, San Juan Mountains, Colorado, and Four Corners Region"
+    year: 2021
+    publisher: "U.S. Geological Survey"
+    type: "map"
+    number: "SIM 3466"

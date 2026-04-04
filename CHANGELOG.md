@@ -8,15 +8,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Python module implementation
-- Google Colab notebook
+- Python workflow automation with batch processing
+- Temporal trend analysis for contamination monitoring
 - Web application interface
-- Batch processing capability
-- Additional validation sites
+- Machine learning classification enhancement
+- Mobile field validation app
 
 ---
 
-## [1.0.0] - 2025-11-15
+## [1.5.4] - 2025-01-09
+
+### Fixed
+- **Water quality layer wet soil misclassification**: Raised AWEINSH threshold from 0.0 to 0.20
+  - Real water bodies (depth) have AWEINSH > 0.20-0.30
+  - Wet bare soil (surface moisture) has AWEINSH < 0.20
+  - Validated: Ganau Lake water=0.249, wet soil=0.18-0.19
+  - Removed NIR threshold approach (unreliable for contaminated water with suspended particles)
+
+### Changed
+- Optimized unified water mask for better land/water separation
+- Enhanced discrimination between irrigated agriculture and water bodies
+
+---
+
+## [1.5.3] - 2025-01-08
+
+### Fixed
+- Initial attempt at wet soil exclusion using NIR < 5% threshold
+- Identified limitation: Contaminated water can have elevated NIR (4-5%) overlapping with wet soil
+
+### Notes
+- Version superseded by v1.5.4 with superior AWEINSH-based approach
+
+---
+
+## [1.5.2] - 2025-01-08
+
+### Fixed
+- **Critical water quality layer blank issue**: Water bodies showing no color in Water Quality Classification
+  - Root cause: `.selfMask()` in `createBooleanClassification()` masked all water pixels (value 0)
+  - Mask propagated through `isLandAMD.not()` causing entire water quality layer to be masked
+  - Solution: Added `.unmask(0)` before land AMD overlap exclusion check
+  - Validated: Ganau Lake (675 mg/L sulfate) now correctly displays contamination
+
+### Added
+- Comprehensive masking logic documentation
+
+---
+
+## [1.5.1] - 2025-01-05
+
+### Changed
+- Removed water classification classes (20, 21) from land AMD module to prevent overlap
+- Water quality now exclusively handled by dedicated Water Quality Classification module
+- Updated legend to direct users to Water Quality layer
+
+---
+
+## [1.5.0] - 2025-01-03
+
+### Added
+- **Water Quality Classification Module**: Novel 3-class system for contaminated water detection
+  - Clean water (blue), Moderate contamination (orange), Severe contamination (red)
+  - Multi-criteria contamination scoring (0-7 points)
+  - Spectral indices: NIR anomaly, turbidity, iron water index, yellow index
+- **Unified Water Mask**: Multi-criteria approach (MNDWI, AWEINSH, brightness, NDVI, NDWI)
+- **Depth filtering**: Excludes shallow water to improve accuracy
+- **Land/Water separation**: Explicit mutual exclusivity between modules
+
+### Research Innovation
+- First implementation extending USGS terrestrial mineral detection to water quality assessment
+- Validated against ground truth measurements (Ganau Lake: 675 mg/L sulfate)
+
+---
+
+## [1.0.0] - 2024-11-15
 
 ### Added
 
@@ -250,6 +316,8 @@ See GITHUB_SETUP.md for contribution workflow.
 
 ---
 
-**Last Updated:** 2025-11-15  
-**Maintained By:** [Your Name]  
-**License:** [Specify License]
+**Last Updated:** 2025-01-09  
+**Maintained By:** Abdulrahman Rabie Ahmed Hussein  
+**License:** MIT  
+**Website:** www.climtawy.com  
+**ORCID:** 0009-0003-0401-9219

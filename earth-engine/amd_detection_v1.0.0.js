@@ -1,11 +1,32 @@
-// Based on Rockwell et al. (2021) USGS 
-// Detects iron sulfate minerals using Landsat 8
+/**
+ * Acid Mine Drainage Detection System
+ * Advanced Remote Sensing for Environmental Monitoring
+ * 
+ * Version: 1.5.4
+ * Author: Abdulrahman Rabie Ahmed Hussein
+ * Affiliation: Kent State University, Department of Earth Sciences
+ * Website: www.climtawy.com
+ * ORCID: 0009-0003-0401-9219
+ * Email: abdulrahman@climtawy.com
+ * 
+ * Based on: Rockwell et al. (2021) USGS Scientific Investigations Map 3466
+ * License: MIT
+ * 
+ * Description:
+ * Automated detection and mapping of iron sulfate minerals and acid mine drainage
+ * contamination using Landsat 8/9 and Sentinel-2 satellite imagery. Extends USGS
+ * terrestrial mineral detection methodology to water quality assessment.
+ * 
+ * Citation:
+ * Hussein, A. R. A. (2025). Acid Mine Drainage Detection System: Advanced Remote 
+ * Sensing for Environmental Monitoring. GitHub. https://github.com/coodawy/AMD-Detection-Tool
+ */
 
-// ==================================================
+var TOOL_VERSION = 'v1.5.4';
+
+// =============================================================================
 // STUDY AREAS
-// ==================================================================
-
- var TOOL_VERSION = 'v1.5.1';
+// =============================================================================
 
 
 var studyAreas = {
@@ -30,8 +51,7 @@ var studyAreas = {
   'Monday Creek, OH': ee.Geometry.Point([-82.20948,39.48279]).buffer(15000),
   'Lake Superior, Oh': ee.Geometry.Point([-87.060472,47.548672]).buffer(5000),
   'Lake Toshka, Egypt': ee.Geometry.Point([31.27994, 23.09845]).buffer(100000),
-  'Lake Naser, Egypt': ee.Geometry.Point([32.21471, 22.73580]).buffer(100000),
-  'Lakegfhfghd, OH': ee.Geometry.Point([-81.0341, 40.256]).buffer(2000),
+  'Lake Naser, Egypt': ee.Geometry.Point([32.21471, 22.73580]).buffer(100000)
 };
 
 var areaNames = Object.keys(studyAreas);
@@ -615,14 +635,19 @@ function createUnifiedWaterMask() {
   var brightness = settings.currentComposite.select('Brightness');
   var ndvi = settings.currentComposite.select('NDVI');
   var ndwi = settings.currentComposite.select('NDWI');
+  var nir = settings.currentComposite.select('SR_B5');
   
   // Multi-criteria water detection - prevents land from entering water classification
   // Each criterion removes a different type of false positive:
   // - brightness.lt(0.30): Excludes bright land surfaces
   // - ndvi.lt(0.2): Excludes vegetation
   // - ndwi.gt(-0.1): Additional water confirmation
+  // - aweinsh.gt(0.20): CRITICAL - Excludes wet bare soil (raised from 0.0)
+  //   Real water: AWEINSH > 0.20-0.25
+  //   Wet soil: AWEINSH < 0.20 (lacks water column depth)
+  //   Ganau Lake testing: Real water AWEINSH=0.249, Wet soil AWEINSH=0.18-0.19
   var isWater = mndwi.gt(settings.waterThreshold)     // mNDWI > 0.3 (main criterion)
-    .and(aweinsh.gt(settings.aweinshThreshold))       // AWEINSH > 0.0 (confirms water)
+    .and(aweinsh.gt(0.20))                            // CRITICAL FIX: AWEINSH > 0.20 (excludes wet soil)
     .and(brightness.lt(0.30))                         // Excludes bright land surfaces
     .and(ndvi.lt(0.2))                                // Excludes vegetation
     .and(ndwi.gt(-0.1));                              // Additional water confirmation
@@ -938,7 +963,10 @@ function createWaterQualityClassification() {
   
   // Explicitly exclude any land AMD pixels from water analysis
   // This prevents overlap between Land AMD and Water Quality classifications
-  var landClassification = createBooleanClassification();
+  // CRITICAL: unmask(0) required because createBooleanClassification() uses .selfMask()
+  // which masks all 0-value pixels (including water). Without unmask, isLandAMD.not()
+  // returns MASKED for water pixels, propagating the mask and blanking out water quality.
+  var landClassification = createBooleanClassification().unmask(0);
   var isLandAMD = landClassification.gte(1).and(landClassification.lte(19));
   var waterOnlyMask = waterMask.and(isLandAMD.not());
   
@@ -2721,13 +2749,11 @@ function updateEverything() {
 
 // Print welcome message
 print('═══════════════════════════════════════════════════════════════');
-print('USGS AMD/Iron Sulfate Detection Tool ' + TOOL_VERSION);
+print('Acid Mine Drainage Detection System ' + TOOL_VERSION);
+print('Advanced Remote Sensing for Environmental Monitoring');
 print('═══════════════════════════════════════════════════════════════');
-print('NEW in ' + TOOL_VERSION + ':');
-print('  ✅ Fixed land false positives in Water Quality layer');
-print('  ✅ Multi-criteria water mask (MNDWI + AWEINSH + Brightness + NDVI + NDWI)');
-print('  ✅ Land AMD exclusion prevents module overlap');
-print('  ✅ Depth filter preserved for clean lake accuracy');
+print('Author: Abdulrahman R. A. Hussein | Kent State University');
+print('Website: www.climtawy.com | ORCID: 0009-0003-0401-9219 | License: MIT');
 print('═══════════════════════════════════════════════════════════════');
 print('Initializing...');
 
