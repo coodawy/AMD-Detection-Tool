@@ -32,7 +32,7 @@ keywords:
   - "contamination detection"
 license: MIT
 references:
-  - type: article
+  - type: "article"
     authors:
       - family-names: "Rockwell"
         given-names: "Barnaby W."
@@ -43,5 +43,5 @@ references:
     title: "Improved automated identification and mapping of iron sulfate minerals, other mineral groups, and vegetation using Landsat 8 Operational Land Imager data, San Juan Mountains, Colorado, and Four Corners Region"
     year: 2021
     publisher: "U.S. Geological Survey"
-    type: "map"
+    genre: "map"
     number: "SIM 3466"
