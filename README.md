@@ -191,6 +191,8 @@ For collaboration inquiries, methodological questions, or data sharing:
 - Open an [Issue](https://github.com/coodawy/AMD-Detection-Tool/issues)
 - Visit [www.climtawy.com](https://www.climtawy.com)
 - Email: abdulrahman@climtawy.com
+- **LinkedIn**: [linkedin.com/in/climatawy](https://linkedin.com/in/climatawy)
+- **ResearchGate**: [researchgate.net/profile/Abdulrahman-Hussein-5](https://researchgate.net/profile/Abdulrahman-Hussein-5)
 
 ---
 
