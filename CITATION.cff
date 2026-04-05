@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "Acid Mine Drainage Detection System: Advanced Remote Sensing for Environmental Monitoring"
+title: "Acid Mine Drainage (AMD) and Coal Mine Drainage (CMD) Detection System: Advanced Remote Sensing for Environmental Monitoring"
 version: 1.5.4
-date-released: 2025-01-09
+date-released: 2024-08-01
 authors:
   - family-names: "Hussein"
     given-names: "Abdulrahman"
@@ -13,14 +13,15 @@ authors:
 repository-code: "https://github.com/coodawy/AMD-Detection-Tool"
 url: "https://www.climtawy.com"
 abstract: >
-  Automated detection and mapping system for acid mine drainage (AMD) and iron sulfate
-  minerals using Landsat 8/9 and Sentinel-2 satellite imagery. Extends USGS terrestrial
-  mineral detection methodology (Rockwell et al., 2021) to contaminated water bodies.
+  Automated detection and mapping system for acid mine drainage (AMD), coal mine drainage (CMD),
+  and iron sulfate minerals using Landsat 8/9 and Sentinel-2 satellite imagery. Extends USGS
+  terrestrial mineral detection methodology (Rockwell et al., 2021) to contaminated water bodies.
   Implements multi-criteria water quality scoring (0-7 points) combining spectral indices
   for large-scale environmental monitoring. Open-source Google Earth Engine implementation
   enabling cost-effective watershed assessment worldwide.
 keywords:
   - "acid mine drainage"
+  - "coal mine drainage"
   - "remote sensing"
   - "water quality"
   - "environmental monitoring"

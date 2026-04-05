@@ -3,7 +3,7 @@
 ## ✅ Completed Items
 
 ### Core Documentation
-- [x] **README.md** - Professional overview with impact statement and EB-2 positioning
+- [x] **README.md** - Professional overview with impact statement
 - [x] **LICENSE** - MIT license for open science
 - [x] **CITATION.cff** - Academic citation metadata (update ORCID when available)
 - [x] **CONTRIBUTING.md** - Collaboration guidelines
@@ -84,7 +84,7 @@ Current development documentation files in root (can be moved to docs/developmen
 - [ ] Add Python README if different from main README
 
 ### 6. Social Media & Professional Network
-For maximum visibility and EB-2 impact:
+For maximum visibility:
 - [ ] Announce on LinkedIn with project link
 - [ ] Share on Twitter/X with hashtags: #RemoteSensing #WaterQuality #OpenScience #EnvironmentalMonitoring
 - [ ] Post on ResearchGate
@@ -97,41 +97,6 @@ For maximum visibility and EB-2 impact:
 - [ ] Submit to Earth Engine Community showcase
 - [ ] Consider preprint on EarthArxiv or similar
 - [ ] Add to relevant GitHub awesome-lists (awesome-earth-engine, awesome-remote-sensing)
-
-## 🎯 EB-2 Visa Application Support
-
-### Documentation for Immigration Case
-
-This repository demonstrates:
-
-1. **Original Research Contribution**
-   - Novel extension of USGS methodology to water quality
-   - Multi-criteria contamination scoring system (7-point scale)
-   - Adaptive water masking innovation (AWEINSH threshold optimization)
-
-2. **National/International Importance**
-   - Addresses 19,000+ km of AMD-impacted waterways in U.S. alone
-   - Global applicability (validated in Iraq, planning Egypt, Ohio)
-   - 70-90% cost reduction vs. traditional monitoring
-   - Environmental justice applications for underserved communities
-
-3. **Sustained Record of Achievement**
-   - Active development with 5 major versions (v1.0.0 → v1.5.4)
-   - Ground truth validation (675 mg/L sulfate detection)
-   - Multi-sensor implementation (Landsat 8/9, Sentinel-2)
-   - Comprehensive documentation and open science approach
-
-4. **Recognition Indicators to Cultivate**
-   - GitHub stars and forks (track growth)
-   - Issues/discussions showing community engagement
-   - Citations in other research (track with Google Scholar)
-   - Collaborations or data requests
-   - Conference presentations or publications using this tool
-
-### Professional Narrative
-
-**Position this as:**
-"Advanced remote sensing system enabling cost-effective, large-scale environmental monitoring of acid mine drainage contamination. This open-source tool democratizes sophisticated monitoring technology previously requiring expensive field surveys. Validated against ground truth measurements (675 mg/L sulfate detection) and applied across multiple continents, this system addresses critical environmental challenges while advancing open science principles. Led by Abdulrahman R. A. Hussein, PhD researcher at Kent State University with expertise in environmental remote sensing, hydrogeochemistry, and agri-tech." globally.
 
 ## Metrics to Track
 

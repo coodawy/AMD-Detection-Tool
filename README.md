@@ -1,4 +1,4 @@
-# Acid Mine Drainage Detection System
+# Acid Mine Drainage (AMD) and Coal Mine Drainage (CMD) Detection System
 ### Advanced Remote Sensing for Environmental Monitoring
 
 [![Version](https://img.shields.io/badge/version-1.5.4-blue.svg)](https://github.com/coodawy/AMD-Detection-Tool)
@@ -6,13 +6,13 @@
 [![Earth Engine](https://img.shields.io/badge/Google%20Earth%20Engine-Enabled-orange.svg)](https://earthengine.google.com/)
 [![DOI](https://img.shields.io/badge/DOI-pending-lightgrey.svg)](https://zenodo.org/)
 
-> **Advancing environmental monitoring through satellite-based detection of acid mine drainage and water contamination worldwide**
+> **Advancing environmental monitoring through satellite-based detection of acid mine drainage (AMD), coal mine drainage (CMD), and water contamination worldwide**
 
 ---
 
 ## 🌍 Impact & Applications
 
-This research tool addresses a **critical global environmental challenge**: acid mine drainage (AMD) contamination affects over **19,000 kilometers of waterways** in the United States alone, with millions more kilometers impacted worldwide. Traditional field surveys are costly, time-consuming, and limited in spatial coverage.
+This research tool addresses a **critical global environmental challenge**: acid mine drainage (AMD) and coal mine drainage (CMD) contamination affects over **19,000 kilometers of waterways** in the United States alone, with millions more kilometers impacted worldwide. Traditional field surveys are costly, time-consuming, and limited in spatial coverage.
 
 This automated detection system enables:
 - **Large-scale monitoring** of mining-impacted watersheds across continents
@@ -129,8 +129,8 @@ If you use this tool in your research, please cite:
 ```bibtex
 @software{hussein2025amd,
   author = {Hussein, A.},
-  title = {Acid Mine Drainage Detection System: Advanced Remote Sensing for Environmental Monitoring},
-  year = {2025},
+  title = {Acid Mine Drainage (AMD) and Coal Mine Drainage (CMD) Detection System: Advanced Remote Sensing for Environmental Monitoring},
+  year = {2024},
   version = {1.5.4},
   url = {https://github.com/coodawy/AMD-Detection-Tool},
   note = {Based on Rockwell et al. (2021) USGS SIM 3466}

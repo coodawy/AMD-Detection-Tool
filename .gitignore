@@ -93,6 +93,12 @@ node_modules/
 .local/
 local_settings.py
 
+# Local Development documentation
+docs/development/
+
+# Private files (EB-2 documentation, personal notes)
+.private/
+
 # Earth Engine Exports and Geospatial Data
 GEE_Exports/
 data/

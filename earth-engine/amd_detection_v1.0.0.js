@@ -1,5 +1,5 @@
 /**
- * Acid Mine Drainage Detection System
+ * Acid Mine Drainage (AMD) and Coal Mine Drainage (CMD) Detection System
  * Advanced Remote Sensing for Environmental Monitoring
  * 
  * Version: 1.5.4
@@ -15,9 +15,9 @@
  * License: MIT
  * 
  * Description:
- * Automated detection and mapping of iron sulfate minerals and acid mine drainage
- * contamination using Landsat 8/9 and Sentinel-2 satellite imagery. Extends USGS
- * terrestrial mineral detection methodology to water quality assessment.
+ * Automated detection and mapping of iron sulfate minerals, acid mine drainage (AMD),
+ * and coal mine drainage (CMD) contamination using Landsat 8/9 and Sentinel-2 satellite
+ * imagery. Extends USGS terrestrial mineral detection methodology to contaminated water bodies quality assessment.
  * 
  * Citation:
  * Hussein, A. R. A. (2025). Acid Mine Drainage Detection System: Advanced Remote 
