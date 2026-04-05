@@ -3,8 +3,10 @@
  * Advanced Remote Sensing for Environmental Monitoring
  * 
  * Version: 1.5.4
- * Author: Abdulrahman Rabie Ahmed Hussein
+ * Author: Abdulrahman Hussein
  * Affiliation: Kent State University, Department of Earth Sciences
+ * Lab: Environmental Remote Sensing Laboratory
+ * Supervisor: Dr. Joseph D. Ortiz
  * Website: www.climtawy.com
  * ORCID: 0009-0003-0401-9219
  * Email: abdulrahman@climtawy.com
@@ -2752,7 +2754,7 @@ print('════════════════════════�
 print('Acid Mine Drainage Detection System ' + TOOL_VERSION);
 print('Advanced Remote Sensing for Environmental Monitoring');
 print('═══════════════════════════════════════════════════════════════');
-print('Author: Abdulrahman R. A. Hussein | Kent State University');
+print('Author: Abdulrahman Hussein | Kent State University');
 print('Website: www.climtawy.com | ORCID: 0009-0003-0401-9219 | License: MIT');
 print('═══════════════════════════════════════════════════════════════');
 print('Initializing...');

@@ -171,15 +171,17 @@ Visit [www.climtawy.com](https://www.climtawy.com) or open GitHub issue for rese
 
 **Citation**:
 ```
-Hussein, A. R. A. (2025). Acid Mine Drainage Detection System: Advanced Remote 
+Hussein, A. (2025). Acid Mine Drainage Detection System: Advanced Remote 
 Sensing for Environmental Monitoring. GitHub. 
 https://github.com/coodawy/AMD-Detection-Tool
 ```
 
 ## Author
 
-**Abdulrahman Rabie Ahmed Hussein**  
+**Abdulrahman Hussein**  
 PhD Student, Kent State University, Department of Earth Sciences  
+Environmental Remote Sensing Laboratory  
+Supervisor: Dr. Joseph D. Ortiz  
 Environmental Remote Sensing, Hydrogeochemistry, & AgriTech  
 Website: [www.climtawy.com](https://www.climtawy.com)  
 ORCID: [0009-0003-0401-9219](https://orcid.org/0009-0003-0401-9219)  

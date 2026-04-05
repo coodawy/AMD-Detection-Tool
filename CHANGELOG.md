@@ -317,7 +317,9 @@ See GITHUB_SETUP.md for contribution workflow.
 ---
 
 **Last Updated:** 2025-01-09  
-**Maintained By:** Abdulrahman Rabie Ahmed Hussein  
+**Maintained By:** Abdulrahman Hussein  
+**Affiliation:** Kent State University, Environmental Remote Sensing Laboratory  
+**Supervisor:** Dr. Joseph D. Ortiz  
 **License:** MIT  
 **Website:** www.climtawy.com  
 **ORCID:** 0009-0003-0401-9219

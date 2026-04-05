@@ -342,6 +342,8 @@ For questions about publication strategy or repository management:
 
 *Prepared: January 9, 2025*  
 *Project: Acid Mine Drainage Detection System v1.5.4*  
-*Author: Abdulrahman Rabie Ahmed Hussein, Kent State University*  
-*ORCID: 0009-0003-0401-9219*  
-*Email: abdulrahman@climtawy.com*
+*Author: Abdulrahman Hussein*  
+*Affiliation: Kent State University, Environmental Remote Sensing Laboratory*  
+*Supervisor: Dr. Joseph D. Ortiz*  
+*ORCID:* 0009-0003-0401-9219  
+*Email:* abdulrahman@climtawy.com*

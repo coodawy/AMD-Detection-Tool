@@ -128,7 +128,7 @@ If you use this tool in your research, please cite:
 
 ```bibtex
 @software{hussein2025amd,
-  author = {Hussein, Abdulrahman R. A.},
+  author = {Hussein, A.},
   title = {Acid Mine Drainage Detection System: Advanced Remote Sensing for Environmental Monitoring},
   year = {2025},
   version = {1.5.4},
@@ -180,8 +180,9 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📧 Contact & Collaboration
 
-**Author:** Abdulrahman Rabie Ahmed Hussein  
+**Author:** Abdulrahman Hussein  
 **Affiliation:** Kent State University, Department of Earth Sciences  
+**Lab:** Environmental Remote Sensing Laboratory  
 **Website:** [www.climtawy.com](https://www.climtawy.com)  
 **ORCID:** [0009-0003-0401-9219](https://orcid.org/0009-0003-0401-9219)  
 **Email:** abdulrahman@climtawy.com  
@@ -206,9 +207,15 @@ Open science principles: This tool is freely available to support environmental 
 
 ## 🙏 Acknowledgments
 
+This research was conducted under the supervision of **Dr. Joseph D. Ortiz** at the Kent State University Environmental Remote Sensing Laboratory.
+
+**Supervisor:**
+- Dr. Joseph D. Ortiz, Professor, Department of Earth Sciences, Kent State University
+
+**Special Thanks:**
 - **U.S. Geological Survey** for the foundational Rockwell et al. (2021) methodology
 - **Google Earth Engine** team for cloud-based geospatial processing infrastructure
-- **Kent State University** for research support
+- **Kent State University** for research support and facilities
 - **Global remote sensing community** for validation and feedback
 
 ---

@@ -6,9 +6,9 @@ version: 1.5.4
 date-released: 2025-01-09
 authors:
   - family-names: "Hussein"
-    given-names: "Abdulrahman Rabie Ahmed"
+    given-names: "Abdulrahman"
     orcid: "https://orcid.org/0009-0003-0401-9219"
-    affiliation: "Kent State University, Department of Earth Sciences"
+    affiliation: "Kent State University, Department of Earth Sciences, Environmental Remote Sensing Laboratory"
     email: "abdulrahman@climtawy.com"
 repository-code: "https://github.com/coodawy/AMD-Detection-Tool"
 url: "https://www.climtawy.com"
