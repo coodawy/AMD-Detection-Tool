@@ -4,21 +4,28 @@ type: software
 title: "Acid Mine Drainage (AMD) and Coal Mine Drainage (CMD) Detection System: Advanced Remote Sensing for Environmental Monitoring"
 version: 1.5.4
 date-released: 2024-08-01
+doi: 10.5281/zenodo.19429983
 authors:
   - family-names: "Hussein"
     given-names: "Abdulrahman"
     orcid: "https://orcid.org/0009-0003-0401-9219"
     affiliation: "Kent State University, Department of Earth Sciences, Environmental Remote Sensing Laboratory"
-    email: "abdulrahman@climtawy.com"
 repository-code: "https://github.com/coodawy/AMD-Detection-Tool"
 url: "https://www.climtawy.com"
 abstract: >
-  Automated detection and mapping system for acid mine drainage (AMD), coal mine drainage (CMD),
-  and iron sulfate minerals using Landsat 8/9 and Sentinel-2 satellite imagery. Extends USGS
-  terrestrial mineral detection methodology (Rockwell et al., 2021) to contaminated water bodies.
-  Implements multi-criteria water quality scoring (0-7 points) combining spectral indices
-  for large-scale environmental monitoring. Open-source Google Earth Engine implementation
-  enabling cost-effective watershed assessment worldwide.
+  The detection of cryptic pollution, particularly coal mine drainage (CMD) neutralized by carbonate
+  bedrock, remains a significant challenge in hydrogeology because these waters often retain toxic
+  sulfate loads despite exhibiting a neutral pH. This automated remote sensing workflow identifies
+  these anomalies without constant extensive ground sampling. We adapted the automated AMD detection
+  method originally proposed by Rockwell et al. (2021) for the USGS, translating the workflow into
+  custom Python algorithms for rapid processing of Landsat 8/9 and Sentinel-2 for higher resolution
+  results. The method was modified to detect spectral anomalies specifically within water bodies,
+  utilizing the iron sulfate index and new filtering equations to map potential pollution dispersion.
+  Preliminary application to Ganau Pond (Kurdistan Region, Iraq), a site with high sulfate (>700 mg/L),
+  revealed distinct spectral increases corresponding with suspected pollution inflows. Validated against
+  ground truth geochemical data from the Muskingum Watershed, Ohio. This research presents a cost-effective,
+  automated tool for preliminary water quality assessment in data-scarce regions. Presented at the 40th
+  Annual Graduate Research Symposium, Kent State University.
 keywords:
   - "acid mine drainage"
   - "coal mine drainage"

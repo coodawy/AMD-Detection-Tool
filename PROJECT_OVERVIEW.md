@@ -171,8 +171,9 @@ Visit [www.climtawy.com](https://www.climtawy.com) or open GitHub issue for rese
 
 **Citation**:
 ```
-Hussein, A. (2025). Acid Mine Drainage Detection System: Advanced Remote 
-Sensing for Environmental Monitoring. GitHub. 
+Hussein, A. (2024). Acid Mine Drainage (AMD) and Coal Mine Drainage (CMD) Detection System: 
+Advanced Remote Sensing for Environmental Monitoring. 
+DOI: 10.5281/zenodo.19429983
 https://github.com/coodawy/AMD-Detection-Tool
 ```
 
@@ -183,9 +184,12 @@ PhD Student, Kent State University, Department of Earth Sciences
 Environmental Remote Sensing Laboratory  
 Supervisor: Dr. Joseph D. Ortiz  
 Environmental Remote Sensing, Hydrogeochemistry, & AgriTech  
-Website: [www.climtawy.com](https://www.climtawy.com)  
-ORCID: [0009-0003-0401-9219](https://orcid.org/0009-0003-0401-9219)  
-Email: abdulrahman@climtawy.com
+
+**Contact & Research:**  
+🌐 Website: [www.climtawy.com](https://www.climtawy.com)  
+📊 ORCID: [0009-0003-0401-9219](https://orcid.org/0009-0003-0401-9219)  
+📄 DOI: [10.5281/zenodo.19429983](https://doi.org/10.5281/zenodo.19429983)  
+📑 ResearchGate: [Automating Cryptic Sulfate Pollution Detection](https://www.researchgate.net/publication/403521974_Automating_the_Detection_of_Cryptic_Sulfate_Pollution_Python_and_Machine_Learning_Implementation_for_Neutralized_Waters)
 
 ---
 

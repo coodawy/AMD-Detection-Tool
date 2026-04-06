@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/badge/version-1.5.4-blue.svg)](https://github.com/coodawy/AMD-Detection-Tool)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Earth Engine](https://img.shields.io/badge/Google%20Earth%20Engine-Enabled-orange.svg)](https://earthengine.google.com/)
-[![DOI](https://img.shields.io/badge/DOI-pending-lightgrey.svg)](https://zenodo.org/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19429983.svg)](https://doi.org/10.5281/zenodo.19429983)
 
 > **Advancing environmental monitoring through satellite-based detection of acid mine drainage (AMD), coal mine drainage (CMD), and water contamination worldwide**
 
@@ -22,10 +22,12 @@ This automated detection system enables:
 - **Environmental justice** applications in underserved communities lacking monitoring infrastructure
 
 **Real-world impact:**
-- Successfully detected sulfate contamination (675 mg/L) in Ganau Lake, Iraq
+- Successfully detected sulfate contamination (>700 mg/L) in Ganau Pond, Kurdistan Region, Iraq
 - Validated against USGS reference sites in Colorado, Nevada, Utah, and Montana
-- Applied to coal mining regions in Ohio, Mediterranean lakes, and global study areas
+- Applied to coal mining regions in Ohio (Muskingum Watershed), Mediterranean lakes, and global study areas
 - Adaptable methodology extended to both terrestrial mineral mapping and aquatic contamination
+- **Presented at:** 40th Annual Graduate Research Symposium, Kent State University
+- **Publication:** [ResearchGate - Automating the Detection of Cryptic Sulfate Pollution](https://www.researchgate.net/publication/403521974_Automating_the_Detection_of_Cryptic_Sulfate_Pollution_Python_and_Machine_Learning_Implementation_for_Neutralized_Waters)
 
 ---
 
@@ -127,11 +129,12 @@ AMD-Detection-Tool/
 If you use this tool in your research, please cite:
 
 ```bibtex
-@software{hussein2025amd,
+@software{hussein2024amd,
   author = {Hussein, A.},
   title = {Acid Mine Drainage (AMD) and Coal Mine Drainage (CMD) Detection System: Advanced Remote Sensing for Environmental Monitoring},
   year = {2024},
   version = {1.5.4},
+  doi = {10.5281/zenodo.19429983},
   url = {https://github.com/coodawy/AMD-Detection-Tool},
   note = {Based on Rockwell et al. (2021) USGS SIM 3466}
 }
@@ -183,17 +186,18 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 **Author:** Abdulrahman Hussein  
 **Affiliation:** Kent State University, Department of Earth Sciences  
 **Lab:** Environmental Remote Sensing Laboratory  
-**Website:** [www.climtawy.com](https://www.climtawy.com)  
 **ORCID:** [0009-0003-0401-9219](https://orcid.org/0009-0003-0401-9219)  
-**Email:** abdulrahman@climtawy.com  
+**DOI:** [10.5281/zenodo.19429983](https://doi.org/10.5281/zenodo.19429983)  
 **Research Focus:** Environmental remote sensing, hydrogeochemistry, agri-tech, climate adaptation
 
-For collaboration inquiries, methodological questions, or data sharing:
-- Open an [Issue](https://github.com/coodawy/AMD-Detection-Tool/issues)
-- Visit [www.climtawy.com](https://www.climtawy.com)
-- Email: abdulrahman@climtawy.com
-- **LinkedIn**: [linkedin.com/in/climatawy](https://linkedin.com/in/climatawy)
-- **ResearchGate**: [researchgate.net/profile/Abdulrahman-Hussein-5](https://researchgate.net/profile/Abdulrahman-Hussein-5)
+**For collaboration inquiries, methodological questions, or data sharing, visit:**  
+🌐 **[www.climtawy.com](https://www.climtawy.com)** - Contact form and research portfolio
+
+**Connect with me:**
+- 📊 **Google Scholar:** [Abdulrahman Hussein](https://scholar.google.com)
+- 📄 **ResearchGate:** [Automating Cryptic Sulfate Pollution Detection](https://www.researchgate.net/publication/403521974_Automating_the_Detection_of_Cryptic_Sulfate_Pollution_Python_and_Machine_Learning_Implementation_for_Neutralized_Waters)
+- 💼 **LinkedIn:** [linkedin.com/in/climatawy](https://linkedin.com/in/climatawy)
+- 🐛 **GitHub Issues:** [Report bugs or request features](https://github.com/coodawy/AMD-Detection-Tool/issues)
 
 ---
 
